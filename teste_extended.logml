@@ -4,7 +4,7 @@
         <!-- Fatos -->
         <head>
             <pred class="mulher">
-                <meta>* é uma <p>MULHER</p></meta>
+                <meta>* é uma #MULHER#</meta>
                 <li>marta</li>
                 <li>lisa</li>
                 <li>lisa</li>
@@ -14,7 +14,7 @@
                 <li>susan</li>
             </pred>
             <pred class="homem">
-                <meta>* é um <p>HOMEM</p></meta>
+                <meta>* é um #HOMEM#</meta>
                 <li>Socrates</li>
                 <li>dino</li>
                 <li>tony</li>
@@ -26,7 +26,7 @@
                 <li>phil</li>
             </pred>
             <pred class="parente">
-                <meta>* é <p>PARENTE</p> de * </meta>
+                <meta>* é #PARENTE# de * </meta>
                 <li>dino,tony</li>
                 <li>tony,abe</li>
                 <li>tony,sara</li>
@@ -43,17 +43,17 @@
                 <li>susan,phil</li>
             </pred>
             <pred class="febre">
-                <meta>* está com <p>FEBRE</p></meta>
+                <meta>* está com #FEBRE#</meta>
                 <li>lisa</li>
                 <li>João</li>
             </pred>
             <pred class="mal_estar">
-                <meta>* sente <p>MAL ESTAR</p></meta>
+                <meta>* sente #MAL ESTAR#</meta>
                 <li>lisa</li>
                 <li>João</li>
             </pred>
             <pred class="dor_de_garganta">
-                <meta>* sente <p>DOR DE GARGANTA</p></meta>
+                <meta>* sente #DOR DE GARGANTA#</meta>
                 <li>lisa</li>
                 <li>josé</li>
                 <li>marco</li>
@@ -63,7 +63,7 @@
     <axiom>
         <head>
             <pred class="mortal">
-                <meta> * é <p>MORTAL</p></meta>
+                <meta> * é #MORTAL#</meta>
                 <li>pessoa</li>
             </pred>
         </head>
@@ -78,7 +78,7 @@
     <axiom>
         <head>
             <pred class="gripe">
-                <meta> * está com <p>GRIPE</p></meta>
+                <meta> * está com #GRIPE#</meta>
                 <li>x</li>
             </pred>
         </head>
@@ -97,7 +97,7 @@
     <axiom>
         <head>
             <pred class="irmao">
-                <meta>* é <p>IRMÃO</p> de *</meta>
+                <meta>* é #IRMÃO# de *</meta>
                 <li>x,y</li>
             </pred>
         </head>
@@ -111,7 +111,7 @@
     <axiom>
         <head>
             <pred class="pai">
-                <meta> * é <p>PAI</p> de *</meta>
+                <meta> * é #PAI# de *</meta>
                 <li>x,y</li>
             </pred>
         </head>
@@ -127,7 +127,7 @@
     <axiom>
         <head>
             <pred class="mae">
-                <meta> * é <p>MÃE</p> de *</meta>
+                <meta> * é #MÃE# de *</meta>
                 <li>x,y</li>
             </pred>
         </head>
@@ -143,7 +143,7 @@
     <axiom>
         <head>
             <pred class="avo">
-                <meta> * é <p>AVÔ</p> de *</meta>
+                <meta> * é #AVÔ# de *</meta>
                 <li>x,z</li>
             </pred>
         </head>
@@ -159,7 +159,7 @@
     <axiom>
         <head>
             <pred class="bisavo">
-                <meta>* é <p>BISAVO</p> de *</meta>
+                <meta>* é #BISAVO# de *</meta>
                 <li>x,z</li>
             </pred>
         </head>

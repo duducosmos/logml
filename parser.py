@@ -18,10 +18,16 @@ IS_PYTHON3 = sys.version_info.major == 3
 if IS_PYTHON3:
     unicode = str
     def remover_acentos(txt):
-        return normalize('NFKD', txt).encode('ASCII','ignore').decode('ASCII')
+        """
+        Remove acentuacao.
+        """
+        return normalize('NFKD', txt).encode('ASCII', 'ignore').decode('ASCII')
 else:
     def remover_acentos(txt, codif='utf-8'):
-        return normalize('NFKD', txt.decode(codif)).encode('ASCII','ignore')
+        """
+        Remove acentuacao.
+        """
+        return normalize('NFKD', txt.decode(codif)).encode('ASCII', 'ignore')
 
 
 
@@ -58,21 +64,47 @@ class Parser:
             out.append(tmp)
         return out
 
+    def _get_pred_fact(self):
+        predicates = []
+        for fact in self.clausures["fact"]:
+            if isinstance(fact["head"]["pred"], list):
+                for sub_fact in fact["head"]["pred"]:
+                    if "meta" in sub_fact:
+                        predicates.append({remover_acentos(sub_fact["@class"]):
+                                           sub_fact["meta"]})
+                    else:
+                        predicates.append({remover_acentos(
+                            sub_fact["@class"]): None})
+
+            else:
+                print(fact["head"]["pred"])
+        return predicates
+
     def get_predicates(self):
         """
         Return a list of predicates in the logml file.
         Represent the questions that the sistem can responds.
         """
         predicates = []
-        if self.facts is not None:
-            predicates += self.facts.keys()
+        if self.conditionals is not None:
+
+            for conditional in self.clausures["conditional"]:
+                if "meta" in conditional["head"]["pred"]:
+
+                    predicates.append({remover_acentos(conditional["head"]["pred"]["@class"]):
+                                       conditional["head"]["pred"]["meta"]})
+                else:
+                    predicates.append({remover_acentos(
+                        conditional["head"]["pred"]["@class"]): None})
 
         if self.gols is not None:
-            predicates += self.gols.keys()
+            for gol in self.gols:
+                predicates.append(gol)
 
-        if self.conditionals is not None:
-            predicates += self.conditionals.keys()
-        return [remover_acentos(i) for i in predicates]
+        if self.facts is not None:
+            predicates += self._get_pred_fact()
+
+        return predicates
 
 
     def get_gols(self):
@@ -139,9 +171,12 @@ class Parser:
         """
         axioms = None
         with open(self.logml_file, 'r') as logml:
-            result = xmltodict.parse(logml.read())
+            text = logml.read()
+            result = xmltodict.parse(text)
+
             if "axiom" in result["logml"]:
                 axioms = result["logml"]["axiom"]
+
         return axioms
 
     def get_clausures(self):
@@ -168,8 +203,8 @@ class Parser:
 
 
 if __name__ == "__main__":
-    OBJ = Parser("./teste.logml")
-    print("\nFatos: {}\n".format(OBJ.get_facts()))
-    print("Condicionais: {}\n".format(OBJ.get_condictionals()))
-    print("Clausulas  gol: {}\n".format(OBJ.get_gols()))
+    OBJ = Parser("./teste_extended.logml")
+    #print("\nFatos: {}\n".format(OBJ.get_facts()))
+    #print("Condicionais: {}\n".format(OBJ.get_condictionals()))
+    #print("Clausulas  gol: {}\n".format(OBJ.get_gols()))
     print("Predicados : {}".format(OBJ.get_predicates()))
