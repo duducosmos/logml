@@ -9,6 +9,7 @@ Date: 22/08/2017
 
 
 from parser import Parser
+from numpy import array
 
 
 class OnlyOneClausure(Exception):
@@ -18,7 +19,7 @@ class OnlyOneClausure(Exception):
     pass
 
 
-class Translater:
+class Compiler:
     """
     Translate the logml file to prolog program
     """
@@ -32,10 +33,8 @@ class Translater:
 
         self.constants = None
         self.get_constants()
-        self.lambda_func = []
-        self.generate_facts()
-        self.generate_rules()
-        print(self.constants)
+        self.facts = {}
+        self.facts_matrix()
 
     def get_constants(self):
         """
@@ -88,68 +87,87 @@ class Translater:
 
         return True
 
+
+    def _generate_rules(self, rule):
+        #args = self._parser.conditionals[rule][0]["1"]
+        facts = self._parser.conditionals[rule][1]
+        matrix = []
+        i = 0
+
+        all_in_facts = True
+
+        for fact in facts:
+            if isinstance(facts[fact], list):
+                for _ in facts[fact]:
+
+                    if fact in self.facts:
+                        matrix.append(fact)
+                    else:
+                        matrix.append(i)
+                        all_in_facts = False
+                    i += 1
+            else:
+                if ',' in fact:
+                    for sub_fact in fact.split(","):
+                        if sub_fact in self.facts:
+                            matrix.append(sub_fact)
+                        else:
+                            matrix.append(i)
+                            all_in_facts = False
+                        i += 1
+                else:
+                    if fact in self.facts:
+                        matrix.append(fact)
+                    else:
+                        matrix.append(i)
+                        all_in_facts = False
+                    i += 1
+
+        return all_in_facts, matrix
+
+    def new_fact_from_facts(self, rule):
+        args = self._parser.conditionals[rule][0]["1"]
+        body = self._parser.conditionals[rule][1]
+        print(rule, args, body)
+
     def generate_rules(self):
         """
         Validate de args of rules .
         """
         for rule in self._parser.conditionals:
-            args = self._parser.conditionals[rule][0]["1"]
-            facts = self._parser.conditionals[rule][1]
 
-            pl_rule = u"{0}({1}):- ".format(rule, ",".join(args).upper())
+            all_in_facts, matrix = self._generate_rules(rule)
+            if all_in_facts is True:
+                self.new_fact_from_facts(rule)
+            else:
+                facts = self._parser.conditionals[rule][1]
+                #print(rule, facts, matrix)
 
-            for fact in facts:
 
-                if isinstance(facts[fact], list):
-                    for sub_fact in facts[fact]:
-                        pl_rule += u"{0}({1}),".format(
-                            fact, ",".join(sub_fact["1"]).upper())
 
-                else:
-                    if ',' in fact:
-                        pl_rule += u"{0}({1}),".format(
-                            fact.split(",")[0], ",".join(facts[fact]["1"]).upper())
-                    else:
-                        pl_rule += u"{0}({1}),".format(
-                            fact, ",".join(facts[fact]["1"]).upper())
-            pl_rule = pl_rule[:-1] + "."
-            self.lambda_func.append(pl_rule)
-
-    def generate_facts(self):
+    def facts_matrix(self):
         "Returna a list of  facts "
-        new_fact = ""
+
         for fact in self._parser.facts:
             tmp = self._parser.facts[fact]
+            mfacts = []
 
             if isinstance(tmp, list):
                 for tmpi in tmp:
-                    new_fact += u"{0}({1}).\n".format(
-                        fact, u",".join(tmpi["1"]).lower())
+                    mfacts.append(tmpi["1"])
+                self.facts[fact] = array(mfacts)
 
             else:
-                new_fact += u"{0}({1}).\n".format(fact,
-                                                  u",".join(tmp["1"]).lower())
-
-        self.lambda_func.append(new_fact)
-
-    def generate_program(self):
-        """
-        Save the generated prolog program.
-        """
-        prog = ""
-
-        for predicate in self.lambda_func:
-            prog += predicate + "\n"
-
-        with open(self.pl_file, "w") as myfile:
-            myfile.write(prog)
+                mfacts.append(tmp["1"])
+                self.facts[fact] = array(mfacts)
 
 
 if __name__ == "__main__":
+
 
     import sys
     if len(sys.argv) > 2:
         INPUT_F = sys.argv[1]
         OUTPUT_F = sys.argv[2]
-        CMP = Translater(INPUT_F, OUTPUT_F)
-        CMP.generate_program()
+        CMP = Compiler(INPUT_F, OUTPUT_F)
+        CMP.generate_rules()

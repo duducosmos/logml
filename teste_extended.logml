@@ -4,6 +4,7 @@
         <!-- Fatos -->
         <head>
             <pred class="mulher">
+                <meta>* é uma <p>MULHER</p></meta>
                 <li>marta</li>
                 <li>lisa</li>
                 <li>lisa</li>
@@ -13,6 +14,7 @@
                 <li>susan</li>
             </pred>
             <pred class="homem">
+                <meta>* é um <p>HOMEM</p></meta>
                 <li>Socrates</li>
                 <li>dino</li>
                 <li>tony</li>
@@ -24,6 +26,7 @@
                 <li>phil</li>
             </pred>
             <pred class="parente">
+                <meta>* é <p>PARENTE</p> de * </meta>
                 <li>dino,tony</li>
                 <li>tony,abe</li>
                 <li>tony,sara</li>
@@ -40,14 +43,17 @@
                 <li>susan,phil</li>
             </pred>
             <pred class="febre">
+                <meta>* está com <p>FEBRE</p></meta>
                 <li>lisa</li>
                 <li>João</li>
             </pred>
             <pred class="mal_estar">
+                <meta>* sente <p>MAL ESTAR</p></meta>
                 <li>lisa</li>
                 <li>João</li>
             </pred>
             <pred class="dor_de_garganta">
+                <meta>* sente <p>DOR DE GARGANTA</p></meta>
                 <li>lisa</li>
                 <li>josé</li>
                 <li>marco</li>
@@ -57,6 +63,7 @@
     <axiom>
         <head>
             <pred class="mortal">
+                <meta> * é <p>MORTAL</p></meta>
                 <li>pessoa</li>
             </pred>
         </head>
@@ -71,6 +78,7 @@
     <axiom>
         <head>
             <pred class="gripe">
+                <meta> * está com <p>GRIPE</p></meta>
                 <li>x</li>
             </pred>
         </head>
@@ -89,6 +97,7 @@
     <axiom>
         <head>
             <pred class="irmao">
+                <meta>* é <p>IRMÃO</p> de *</meta>
                 <li>x,y</li>
             </pred>
         </head>
@@ -102,6 +111,7 @@
     <axiom>
         <head>
             <pred class="pai">
+                <meta> * é <p>PAI</p> de *</meta>
                 <li>x,y</li>
             </pred>
         </head>
@@ -117,6 +127,7 @@
     <axiom>
         <head>
             <pred class="mae">
+                <meta> * é <p>MÃE</p> de *</meta>
                 <li>x,y</li>
             </pred>
         </head>
@@ -132,6 +143,7 @@
     <axiom>
         <head>
             <pred class="avo">
+                <meta> * é <p>AVÔ</p> de *</meta>
                 <li>x,z</li>
             </pred>
         </head>
@@ -147,6 +159,7 @@
     <axiom>
         <head>
             <pred class="bisavo">
+                <meta>* é <p>BISAVO</p> de *</meta>
                 <li>x,z</li>
             </pred>
         </head>
