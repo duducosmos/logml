@@ -9,14 +9,17 @@ Date: 22/08/2017
 """
 
 import sys
-import xmltodict
 from unicodedata import normalize
+from exceptions import NoKeyExpressionFounded, InvalidKeyExpressionFounded
+from exceptions import NoClosedKeyExpression, OnlyOneClausure
 
+import xmltodict
 
 
 IS_PYTHON3 = sys.version_info.major == 3
 if IS_PYTHON3:
     unicode = str
+
     def remover_acentos(txt):
         """
         Remove acentuacao.
@@ -30,39 +33,120 @@ else:
         return normalize('NFKD', txt.decode(codif)).encode('ASCII', 'ignore')
 
 
+def _validate_meta(frase, predicate):
+    if "#" not in frase:
+        raise NoKeyExpressionFounded(
+            "No # simbol found in {}".format(predicate))
+    if frase.count("#") > 2:
+        raise InvalidKeyExpressionFounded(
+            "More than 2 # simbol found in {}".format(predicate))
+    if frase.count("#") == 1:
+        raise NoClosedKeyExpression(
+            "No closed # simbol found in {}".format(predicate))
 
+
+def _parse_li(arg):
+    """
+    Parse li an its type
+    """
+    if isinstance(arg, unicode):
+        return {"1": arg.split(",")}
+
+    elif isinstance(arg, dict):
+        return [{arg["@type"]: arg["#text"].split(",")}]
+
+    out = []
+    for i in arg:
+        if isinstance(i, dict):
+            tmp = {i["@type"]: i["#text"].split(",")}
+        else:
+            tmp = {"1": i.split(",")}
+        out.append(tmp)
+    return out
+
+def get_axioms(logml_file):
+    """
+    Return all Axioms from a File
+    """
+    axioms = None
+    with open(logml_file, 'r') as logml:
+        text = logml.read()
+        result = xmltodict.parse(text)
+
+        if "axiom" in result["logml"]:
+            axioms = result["logml"]["axiom"]
+    return axioms
 
 
 class Parser:
     """
     The logml parser.
     """
+
     def __init__(self, logml_file):
-        self.logml_file = logml_file
-        self.axioms = self.get_axioms()
+        self.axioms = get_axioms(logml_file)
         self.clausures = self.get_clausures()
         self.facts = self.get_facts()
         self.gols = self.get_gols()
         self.conditionals = self.get_condictionals()
 
-    def __parse_li(self, arg):
-        """
-        Parse li an its type
-        """
-        if isinstance(arg, unicode):
-            return {"1": arg.split(",")}
+        for predicate in self.conditionals:
+            self.validate_conditional(predicate)
 
-        elif isinstance(arg, dict):
-            return [{arg["@type"]: arg["#text"].split(",")}]
+        self.predicates = self.get_predicates()
+        self.constants = self.get_constants()
 
-        out = []
-        for i in arg:
-            if isinstance(i, dict):
-                tmp = {i["@type"]: i["#text"].split(",")}
+
+    def _not_declared_predict(self, predicate):
+        if predicate not in self.facts:
+            if predicate not in self.conditionals:
+                raise NameError("\"{}\" not declared".format(predicate))
+        return False
+
+    def _not_declared_var(self, predicate):
+        """
+        Search for vars in facts.
+        """
+
+    def validate_conditional(self, predicate):
+        """
+        Validate conditionals
+        """
+
+        facts = [pid for pid in
+                 self.conditionals[predicate]
+                 if "1" not in pid][0]
+
+        sub_fact = None
+
+        for fact in facts:
+
+            if "," in fact:
+                if len(facts) > 1:
+                    raise OnlyOneClausure(
+                        "Only one Clausure with comma \"{}\"".format(fact))
+
+                sub_fact = fact.split(",")
+
+                for fact1 in sub_fact:
+                    self._not_declared_predict(fact1)
             else:
-                tmp = {"1": i.split(",")}
-            out.append(tmp)
-        return out
+                self._not_declared_predict(fact)
+
+        return True
+
+    def get_constants(self):
+        """
+        Return a list of constants defined in facts.
+        """
+        tmp = []
+        for value in self.facts.values():
+            if isinstance(value, list):
+                tmp.append(sum([pid["1"] for pid in value if "1" in pid], []))
+            else:
+                tmp.append(value["1"])
+
+        return list(set(sum(tmp, [])))
 
     def _get_pred_fact(self):
         predicates = []
@@ -70,6 +154,7 @@ class Parser:
             if isinstance(fact["head"]["pred"], list):
                 for sub_fact in fact["head"]["pred"]:
                     if "meta" in sub_fact:
+                        _validate_meta(sub_fact["meta"], sub_fact["@class"])
                         predicates.append({remover_acentos(sub_fact["@class"]):
                                            sub_fact["meta"]})
                     else:
@@ -90,9 +175,11 @@ class Parser:
 
             for conditional in self.clausures["conditional"]:
                 if "meta" in conditional["head"]["pred"]:
+                    frase = conditional["head"]["pred"]["meta"]
+                    _validate_meta(frase, conditional)
 
                     predicates.append({remover_acentos(conditional["head"]["pred"]["@class"]):
-                                       conditional["head"]["pred"]["meta"]})
+                                       frase})
                 else:
                     predicates.append({remover_acentos(
                         conditional["head"]["pred"]["@class"]): None})
@@ -106,16 +193,14 @@ class Parser:
 
         return predicates
 
-
     def get_gols(self):
         """Get All gols in the logml file"""
         if 'gol' in self.clausures:
             gols = {}
             for gol in self.clausures["gol"]:
                 gols[remover_acentos(gol['body']["pred"]["@class"])] = \
-                    self.__parse_li(gol['body']["pred"]["li"])
+                    _parse_li(gol['body']["pred"]["li"])
             return gols
-
 
     def get_condictionals(self):
         """Get All conditional"""
@@ -127,22 +212,20 @@ class Parser:
                 body = conditional['body']["pred"]
 
                 if isinstance(body, list):
-                    body = {bi["@class"]: self.__parse_li(bi["li"]) for bi in body}
+                    body = {bi["@class"]: _parse_li(bi["li"]) for bi in body}
                 else:
-                    body = {body["@class"]: self.__parse_li(body["li"])}
+                    body = {body["@class"]: _parse_li(body["li"])}
 
-
-
-                head_li = self.__parse_li(conditional['head']["pred"]["li"])
+                head_li = _parse_li(conditional['head']["pred"]["li"])
                 if isinstance(head_li, list):
                     if len(head_li) > 1:
-                        raise NameError("Conditional with two predicates in head")
+                        raise NameError(
+                            "Conditional with two predicates in head")
 
                 conditionals[remover_acentos(conditional['head']["pred"]["@class"])] = [
                     head_li,
                     body
-                    ]
-
+                ]
 
             return conditionals
 
@@ -158,26 +241,13 @@ class Parser:
 
                 if isinstance(facts, list):
                     for fts in facts:
-                        fts_li = self.__parse_li(fts["li"])
+                        fts_li = _parse_li(fts["li"])
                         unconditionals[remover_acentos(fts["@class"])] = fts_li
                 else:
                     unconditionals[remover_acentos(unconditional['head']["pred"]["@class"])] = \
-                            self.__parse_li(facts["li"])
+                        _parse_li(facts["li"])
             return unconditionals
 
-    def get_axioms(self):
-        """
-        Return all Axioms from a File
-        """
-        axioms = None
-        with open(self.logml_file, 'r') as logml:
-            text = logml.read()
-            result = xmltodict.parse(text)
-
-            if "axiom" in result["logml"]:
-                axioms = result["logml"]["axiom"]
-
-        return axioms
 
     def get_clausures(self):
         """
@@ -204,7 +274,7 @@ class Parser:
 
 if __name__ == "__main__":
     OBJ = Parser("./teste_extended.logml")
-    #print("\nFatos: {}\n".format(OBJ.get_facts()))
-    #print("Condicionais: {}\n".format(OBJ.get_condictionals()))
-    #print("Clausulas  gol: {}\n".format(OBJ.get_gols()))
     print("Predicados : {}".format(OBJ.get_predicates()))
+    print("Constants : {}".format(OBJ.constants))
+    print("Facts : {}".format(OBJ.facts))
+    print("Rules : {}".format(OBJ.conditionals))
