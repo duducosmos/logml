@@ -14,6 +14,18 @@ class OnlyOneClausure(Exception):
     """
     pass
 
+class EmptyFact(Exception):
+    """
+    Return Error when it is use more than one Clausure in comman  in class.
+    """
+    pass
+
+class InconsistenNumberOfArgsIFacts(Exception):
+    """
+    Return Error when it is use more than one Clausure in comman  in class.
+    """
+    pass
+
 
 class NoKeyExpressionFounded(Exception):
     """

@@ -7,8 +7,6 @@ Version: 0.0.1
 Date: 22/08/2017
 """
 
-from exceptions import OnlyOneClausure
-
 from parser import Parser
 from numpy import array
 

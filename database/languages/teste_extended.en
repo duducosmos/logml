@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Arquivo contendo a tradução para outro idioma da meta linguagem do arquivo.
+Para cada predicato em head deve se criar uma tradução para a sua meta-linguagem
+ -->
+<translate>
+    <pred class="mulher">
+        <meta>* is an #WOMAN#</meta>
+    </pred>
+</translate>

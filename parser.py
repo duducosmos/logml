@@ -10,8 +10,8 @@ Date: 22/08/2017
 
 import sys
 from unicodedata import normalize
-from exceptions import NoKeyExpressionFounded, InvalidKeyExpressionFounded
-from exceptions import NoClosedKeyExpression, OnlyOneClausure
+from validators import validate_meta, validate_meta_star
+
 
 import xmltodict
 
@@ -33,16 +33,6 @@ else:
         return normalize('NFKD', txt.decode(codif)).encode('ASCII', 'ignore')
 
 
-def _validate_meta(frase, predicate):
-    if "#" not in frase:
-        raise NoKeyExpressionFounded(
-            "No # simbol found in {}".format(predicate))
-    if frase.count("#") > 2:
-        raise InvalidKeyExpressionFounded(
-            "More than 2 # simbol found in {}".format(predicate))
-    if frase.count("#") == 1:
-        raise NoClosedKeyExpression(
-            "No closed # simbol found in {}".format(predicate))
 
 
 def _parse_li(arg):
@@ -154,9 +144,15 @@ class Parser:
             if isinstance(fact["head"]["pred"], list):
                 for sub_fact in fact["head"]["pred"]:
                     if "meta" in sub_fact:
-                        _validate_meta(sub_fact["meta"], sub_fact["@class"])
+                        validate_meta(sub_fact["meta"], sub_fact["@class"])
                         predicates.append({remover_acentos(sub_fact["@class"]):
                                            sub_fact["meta"]})
+                        head_li = _parse_li(sub_fact["li"])
+
+                        validate_meta_star(sub_fact["meta"],
+                                            sub_fact["@class"],
+                                            head_li)
+
                     else:
                         predicates.append({remover_acentos(
                             sub_fact["@class"]): None})
@@ -176,7 +172,7 @@ class Parser:
             for conditional in self.clausures["conditional"]:
                 if "meta" in conditional["head"]["pred"]:
                     frase = conditional["head"]["pred"]["meta"]
-                    _validate_meta(frase, conditional)
+                    validate_meta(frase, conditional)
 
                     predicates.append({remover_acentos(conditional["head"]["pred"]["@class"]):
                                        frase})
@@ -273,7 +269,7 @@ class Parser:
 
 
 if __name__ == "__main__":
-    OBJ = Parser("./teste_extended.logml")
+    OBJ = Parser("./database/teste_extended.logml")
     print("Predicados : {}".format(OBJ.get_predicates()))
     print("Constants : {}".format(OBJ.constants))
     print("Facts : {}".format(OBJ.facts))
