@@ -10,8 +10,10 @@ Date: 22/08/2017
 
 import sys
 from unicodedata import normalize
-from validators import validate_meta, validate_meta_star
+from exceptions import OnlyOneClausure
 
+from validators import validate_meta, validate_meta_star
+from numpy import array
 
 import xmltodict
 
@@ -67,6 +69,12 @@ def get_axioms(logml_file):
             axioms = result["logml"]["axiom"]
     return axioms
 
+def _facts_array(constants):
+    tmp = []
+    for const in constants:
+        tmp.append(const["1"])
+    return array(tmp)
+
 
 class Parser:
     """
@@ -85,6 +93,15 @@ class Parser:
 
         self.predicates = self.get_predicates()
         self.constants = self.get_constants()
+
+    def get_array_facts(self):
+        """
+        Return a dict of facts and corresponding array of facts
+        """
+        facts = {}
+        for fact in self.facts:
+            facts[fact] = _facts_array(self.facts[fact])
+        return facts
 
 
     def _not_declared_predict(self, predicate):
@@ -150,8 +167,8 @@ class Parser:
                         head_li = _parse_li(sub_fact["li"])
 
                         validate_meta_star(sub_fact["meta"],
-                                            sub_fact["@class"],
-                                            head_li)
+                                           sub_fact["@class"],
+                                           head_li)
 
                     else:
                         predicates.append({remover_acentos(
@@ -225,6 +242,7 @@ class Parser:
 
             return conditionals
 
+
     def get_facts(self):
         """
         Get All fact From logml file
@@ -240,8 +258,9 @@ class Parser:
                         fts_li = _parse_li(fts["li"])
                         unconditionals[remover_acentos(fts["@class"])] = fts_li
                 else:
+                    fts_li = _parse_li(fts["li"])
                     unconditionals[remover_acentos(unconditional['head']["pred"]["@class"])] = \
-                        _parse_li(facts["li"])
+                        fts_li
             return unconditionals
 
 
@@ -272,5 +291,5 @@ if __name__ == "__main__":
     OBJ = Parser("./database/teste_extended.logml")
     print("Predicados : {}".format(OBJ.get_predicates()))
     print("Constants : {}".format(OBJ.constants))
-    print("Facts : {}".format(OBJ.facts))
     print("Rules : {}".format(OBJ.conditionals))
+    print("Facts : {}".format(OBJ.facts))

@@ -68,7 +68,7 @@ class Compiler:
 
     def generate_rules(self):
         """
-        Validate de args of rules .
+        Validate  args of rules .
         """
         for rule in self._parser.conditionals:
 
