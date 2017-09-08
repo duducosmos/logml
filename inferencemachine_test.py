@@ -36,20 +36,21 @@ class TestInferenceMachine(unittest.TestCase):
         Test result when the input is only a predicate.
         """
         result = self.inference_machine.question("mulher")
-        self.assertEqual(result[0], "marta")
+        self.assertEqual(result[1][0], "lisa")
 
     def test_question_fact_name(self):
         """
         Test result when the input is only a predicate.
         """
         result = self.inference_machine.question("mulher", "marta")
-        self.assertEqual(result[0], "marta")
+        self.assertEqual(result[1], "marta")
 
     def test_question_fact_2d(self):
         """
         Test result when the input is only a predicate.
         """
         result = self.inference_machine.question("parente")
+
         self.assertTrue(list(result[0]) == ['dino', 'tony'])
 
     def test_question_fact_moreargs(self):
@@ -65,7 +66,7 @@ class TestInferenceMachine(unittest.TestCase):
         Test result when the input is only a predicate.
         """
         result = self.inference_machine.question("parente", "dino", "x")
-        self.assertTrue(list(result[0]) == ['dino', 'tony'])
+        self.assertTrue(list(result[1][0]) == ['dino', 'tony'])
 
     def test_question_fact_3d(self):
         """
@@ -79,14 +80,14 @@ class TestInferenceMachine(unittest.TestCase):
         Test result when the input is only a predicate.
         """
         result = self.inference_machine.question("quadrado", "2", "3", "x")
-        self.assertTrue(result[0] == False)
+        self.assertTrue(result[0] is False)
 
     def test_question_fact_2d_extra(self):
         """
         Test result when the input is only a predicate.
         """
         result = self.inference_machine.question("parente", "tony", "x")
-        result = list(result)
+        result = list(result[1])
         self.assertTrue(len(result) == 2)
 
     def test_predicate_not_file(self):

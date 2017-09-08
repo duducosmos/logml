@@ -10,8 +10,8 @@ Date: 08/09/2017
 from gettext import gettext as _
 
 from parser import Parser
-from numpy import where, array, array_equal
 from exceptions import InputArgsSizeError
+from numpy import where, array, array_equal
 
 
 class InferenceMachine:
@@ -38,6 +38,42 @@ class InferenceMachine:
                 list(pred.keys())[0], _(mainword)))
         return know
 
+    def _search_facts(self, predicate, args, argi):
+        subset = []
+        for j in args:
+            if j in argi:
+                index = where(argi == j)[0][0]
+                seai = where(
+                    self.facts[predicate][:, index] == j)[0]
+                if not subset:
+                    subset = set(seai)
+                else:
+                    subset = subset & set(seai)
+
+                if not list(seai):
+                    argsi = ",".join(list(args))
+                    neg = _("not({0}({1}))".format(
+                        predicate, argsi))
+                    return False, neg
+            else:
+
+                index = where(args == j)[0][0]
+                seai = set(range(self.facts[predicate][:, index].size))
+
+                if not subset:
+                    subset = set(seai)
+                else:
+                    subset = subset & set(seai)
+
+        if not subset:
+            argsi = ",".join(list(args))
+            neg = _("not({0}({1}))".format(
+                predicate, argsi))
+            return False, neg
+
+        return True, self.facts[predicate][list(subset)]
+
+
     def _get_facts(self, predicate, *args):
 
         args = args[0]
@@ -60,7 +96,7 @@ class InferenceMachine:
         search = where((self.facts[predicate] == args).all(axis=1))
         search = self.facts[predicate][search]
         if search.size:
-            return search
+            return True, search
 
         else:
 
@@ -70,40 +106,9 @@ class InferenceMachine:
                 return False, neg
             else:
                 if argi.size:
-                    subset = []
-                    for j in args:
-                        if j in argi:
-                            index = where(argi == j)[0][0]
-                            seai = where(
-                                self.facts[predicate][:, index] == j)[0]
-                            if not subset:
-                                subset = set(seai)
-                            else:
-                                subset = subset & set(seai)
+                    found, ans = self._search_facts(predicate, args, argi)
+                    return found, ans
 
-
-                            if not list(seai):
-                                argsi = ",".join(list(args))
-                                neg = _("not({0}({1}))".format(
-                                    predicate, argsi))
-                                return False, neg
-                        else:
-
-                            index = where(args == j)[0][0]
-                            seai = set(range(self.facts[predicate][:, index].size))
-
-                            if not subset:
-                                subset = set(seai)
-                            else:
-                                subset = subset & set(seai)
-
-                    if not subset:
-                        argsi = ",".join(list(args))
-                        neg = _("not({0}({1}))".format(
-                            predicate, argsi))
-                        return False, neg
-
-                    return self.facts[predicate][list(subset)]
 
 
     def question(self, predicate, *args):
@@ -125,6 +130,7 @@ if __name__ == "__main__":
     print(OBJ.question("mulher", "marta"))
     print(OBJ.question("parente", "tony", "x"))
     print(OBJ.question("parente", "tony", "sara"))
+    print(OBJ.question("quadrado"))
     print(OBJ.question("quadrado", "3", "2", "x"))
     print(OBJ.question("quadrado", "2", "3", "25"))
     print(OBJ.question("quadrado", "3", "2", "25"))
