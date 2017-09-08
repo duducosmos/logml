@@ -31,8 +31,10 @@ def validate_meta_star(frase, predicate, args):
     """
     Validade change simbol in meta-language
     """
-
-    args = list(set([len(ai["1"]) for ai in args]))
+    if isinstance(args, list):
+        args = list(set([len(ai["1"]) for ai in args]))
+    else:
+        args = list(set([len(args["1"])]))
 
     if len(args) > 1:
         raise InconsistenNumberOfArgsIFacts(

@@ -9,13 +9,17 @@ Date: 22/08/2017
 """
 
 import sys
+import warnings
 from unicodedata import normalize
-from exceptions import OnlyOneClausure
+from gettext import gettext as _
+
+from exceptions import OnlyOneClausure, OnVarNeed, NoVarConstFound
 
 from validators import validate_meta, validate_meta_star
 from numpy import array
 
 import xmltodict
+
 
 
 IS_PYTHON3 = sys.version_info.major == 3
@@ -33,8 +37,6 @@ else:
         Remove acentuacao.
         """
         return normalize('NFKD', txt.decode(codif)).encode('ASCII', 'ignore')
-
-
 
 
 def _parse_li(arg):
@@ -56,6 +58,7 @@ def _parse_li(arg):
         out.append(tmp)
     return out
 
+
 def get_axioms(logml_file):
     """
     Return all Axioms from a File
@@ -69,8 +72,36 @@ def get_axioms(logml_file):
             axioms = result["logml"]["axiom"]
     return axioms
 
+
+def get_clausures(axioms):
+    """
+    Separete clausures tipe from axioms.
+    """
+    clausures = {}
+    for axiom in axioms:
+        if "head" in axiom and "body" not in axiom:
+            if "fact" not in clausures:
+                clausures["fact"] = []
+            clausures["fact"].append(axiom)
+
+        elif "body" in axiom and "head" not in axiom:
+            if "gol" not in clausures:
+                clausures["gol"] = []
+            clausures["gol"].append(axiom)
+
+        else:
+            if "conditional" not in clausures:
+                clausures["conditional"] = []
+            clausures["conditional"].append(axiom)
+    return clausures
+
+
 def _facts_array(constants):
     tmp = []
+
+    if isinstance(constants, dict):
+        return array(constants["1"])
+
     for const in constants:
         tmp.append(const["1"])
     return array(tmp)
@@ -82,17 +113,16 @@ class Parser:
     """
 
     def __init__(self, logml_file):
-        self.axioms = get_axioms(logml_file)
-        self.clausures = self.get_clausures()
+        self.clausures = get_clausures(get_axioms(logml_file))
         self.facts = self.get_facts()
+        self.constants = self.get_constants()
         self.gols = self.get_gols()
         self.conditionals = self.get_condictionals()
-
         for predicate in self.conditionals:
             self.validate_conditional(predicate)
+            #self.expanding_rule(predicate)
 
         self.predicates = self.get_predicates()
-        self.constants = self.get_constants()
 
     def get_array_facts(self):
         """
@@ -103,17 +133,77 @@ class Parser:
             facts[fact] = _facts_array(self.facts[fact])
         return facts
 
-
     def _not_declared_predict(self, predicate):
         if predicate not in self.facts:
             if predicate not in self.conditionals:
-                raise NameError("\"{}\" not declared".format(predicate))
+                raise NameError(_("\"{}\" not declared".format(predicate)))
         return False
 
-    def _not_declared_var(self, predicate):
+    def _get_body(self, comp):
+        body = []
+        all_vars = []
+        for key, value in comp.items():
+            if isinstance(value, list):
+
+                for arg in value:
+                    all_vars += arg["1"]
+                    const_in_body = [
+                        i for i in arg["1"] if i in self.constants]
+
+                    if const_in_body:
+                        body.append(
+                            {key: arg["1"], "const": const_in_body})
+                    else:
+                        body.append({key: arg["1"]})
+
+            else:
+                const_in_body = [i for i in value["1"]
+                                 if i in self.constants]
+                all_vars += value["1"]
+
+                if const_in_body:
+                    body.append(
+                        {key: value["1"], "const": const_in_body})
+                else:
+                    body.append({key: value["1"]})
+
+        return body, all_vars
+
+
+    def expanding_rule(self, predicate):
         """
-        Search for vars in facts.
+        Separete head, body of a rule
         """
+
+        head = {}
+        in_head = []
+        all_vars = []
+
+        for comp in self.conditionals[predicate]:
+            if "1" in comp:
+                in_head = comp["1"]
+                all_vars += in_head
+
+                head[predicate] = in_head
+                const_in_head = [i for i in in_head if i in self.constants]
+                if len(in_head) == len(const_in_head):
+                    raise OnVarNeed(
+                        _("No vars found in the head of: {}".format(predicate)))
+                if not in_head:
+                    NoVarConstFound(
+                        _("No vars or constants found in {}".format(predicate)))
+            else:
+                body = self._get_body(comp)
+                all_vars += body[1]
+                body = body[0]
+
+        for i in list(set(all_vars)):
+            if all_vars.count(i) == 1:
+                warnings.warn(
+                    _("Warning: Singleton variable {0} in {1}".format(i, predicate)),
+                    SyntaxWarning
+                    )
+        return head, body
 
     def validate_conditional(self, predicate):
         """
@@ -242,7 +332,6 @@ class Parser:
 
             return conditionals
 
-
     def get_facts(self):
         """
         Get All fact From logml file
@@ -262,29 +351,6 @@ class Parser:
                     unconditionals[remover_acentos(unconditional['head']["pred"]["@class"])] = \
                         fts_li
             return unconditionals
-
-
-    def get_clausures(self):
-        """
-        Separete clausures tipe from axioms.
-        """
-        clausures = {}
-        for axiom in self.axioms:
-            if "head" in axiom and "body" not in axiom:
-                if "fact" not in clausures:
-                    clausures["fact"] = []
-                clausures["fact"].append(axiom)
-
-            elif "body" in axiom and "head" not in axiom:
-                if "gol" not in clausures:
-                    clausures["gol"] = []
-                clausures["gol"].append(axiom)
-
-            else:
-                if "conditional" not in clausures:
-                    clausures["conditional"] = []
-                clausures["conditional"].append(axiom)
-        return clausures
 
 
 if __name__ == "__main__":

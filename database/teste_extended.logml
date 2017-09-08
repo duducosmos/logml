@@ -13,6 +13,10 @@
                 <li>mary</li>
                 <li>susan</li>
             </pred>
+            <pred class="quadrado">
+                <meta>* mais * ao #quadrado# é *</meta>
+                <li>3,2,25</li>
+            </pred>
             <pred class="homem">
                 <meta>* é um #HOMEM#</meta>
                 <li>Socrates</li>

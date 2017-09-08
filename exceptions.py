@@ -8,7 +8,25 @@ Date: 22/08/2017
 """
 
 
+class InputArgsSizeError(Exception):
+    """
+    Return Error when try to search facts or rules using no correspondet number of args.
+    """
+    pass
+
 class OnlyOneClausure(Exception):
+    """
+    Return Error when it is use more than one Clausure in comman  in class.
+    """
+    pass
+
+class OnVarNeed(Exception):
+    """
+    Return Error when no var is found in head of rule.
+    """
+    pass
+
+class OnlyOneFactBySide(Exception):
     """
     Return Error when it is use more than one Clausure in comman  in class.
     """
@@ -17,6 +35,12 @@ class OnlyOneClausure(Exception):
 class EmptyFact(Exception):
     """
     Return Error when it is use more than one Clausure in comman  in class.
+    """
+    pass
+
+class NoVarConstFound(Exception):
+    """
+    Return Error when no var os constant found in Clausure.
     """
     pass
 
