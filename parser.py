@@ -107,7 +107,7 @@ def _facts_array(constants):
     return array(tmp)
 
 
-class Parser:
+class Parser(object):
     """
     The logml parser.
     """

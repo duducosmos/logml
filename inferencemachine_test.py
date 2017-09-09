@@ -45,6 +45,13 @@ class TestInferenceMachine(unittest.TestCase):
         result = self.inference_machine.question("mulher", "marta")
         self.assertEqual(result[1], "marta")
 
+    def test_not_in_fact(self):
+        """
+        Test result when the input is only a predicate.
+        """
+        result = self.inference_machine.question("mulher", "martolo", precise=True)
+        self.assertFalse(result[0])
+
     def test_question_fact_2d(self):
         """
         Test result when the input is only a predicate.
@@ -66,6 +73,13 @@ class TestInferenceMachine(unittest.TestCase):
         Test result when the input is only a predicate.
         """
         result = self.inference_machine.question("parente", "dino", "x")
+        self.assertTrue(list(result[1][0]) == ['dino', 'tony'])
+
+    def test_question_fact_vars_2d(self):
+        """
+        Test result when the input is only a predicate.
+        """
+        result = self.inference_machine.question("parente", "y", "x")
         self.assertTrue(list(result[1][0]) == ['dino', 'tony'])
 
     def test_question_fact_3d(self):
@@ -90,12 +104,12 @@ class TestInferenceMachine(unittest.TestCase):
         result = list(result[1])
         self.assertTrue(len(result) == 2)
 
-    def test_predicate_not_file(self):
+    def test_rule_level1(self):
         """
         Test result when the input predicate not in logml.
         """
-        #result = self.inference_machine.question("casa")
-        #self.assertEqual(result[0], "marta")
+        result = self.inference_machine.question("mortal")
+        self.assertEqual(result[1][0], "socrates")
 
 
 

@@ -18,7 +18,7 @@ class OnlyOneClausure(Exception):
     pass
 
 
-class Translater:
+class Translater(object):
     """
     Translate the logml file to prolog program
     """
