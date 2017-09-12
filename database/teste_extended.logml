@@ -50,17 +50,20 @@
                 <meta>* está com #FEBRE#</meta>
                 <li>lisa</li>
                 <li>João</li>
+                <li>dino</li>
             </pred>
             <pred class="mal_estar">
                 <meta>* sente #MAL ESTAR#</meta>
                 <li>lisa</li>
                 <li>João</li>
+                <li>dino</li>
             </pred>
             <pred class="dor_de_garganta">
                 <meta>* sente #DOR DE GARGANTA#</meta>
-                <li>lisa</li>
                 <li>josé</li>
                 <li>marco</li>
+                <li>lisa</li>
+                <li>dino</li>
             </pred>
         </head>
     </axiom>
@@ -73,9 +76,7 @@
         </head>
         <body>
             <pred class="homem">
-                <li>
-                    pessoa
-                </li>
+                <li>pessoa</li>
             </pred>
         </body>
     </axiom>
@@ -130,6 +131,24 @@
     </axiom>
     <axiom>
         <head>
+            <pred class="filho">
+                <meta> * é #filho# de *</meta>
+                <li>x,y</li>
+            </pred>
+        </head>
+        <body>
+            <pred class="homem">
+                <li>x</li>
+            </pred>
+
+            <pred class="parente">
+                <li>x,y</li>
+            </pred>
+
+        </body>
+    </axiom>
+    <axiom>
+        <head>
             <pred class="mae">
                 <meta> * é #MÃE# de *</meta>
                 <li>x,y</li>
@@ -152,11 +171,25 @@
             </pred>
         </head>
         <body>
-            <pred class="pai">
-                <li>x,y</li>
-            </pred>
             <pred class="parente">
+                <li>x,y</li>
                 <li>y,z</li>
+            </pred>
+        </body>
+    </axiom>
+    <axiom>
+        <head>
+            <pred class="avoh">
+                <meta> * é #AVÔh# de *</meta>
+                <li>x,z</li>
+            </pred>
+        </head>
+        <body>
+            <pred class="homem">
+                <li>x</li>
+            </pred>
+            <pred class="avo">
+                <li>x,z</li>
             </pred>
         </body>
     </axiom>
@@ -170,6 +203,8 @@
         <body>
             <pred class="avo">
                 <li>x,y</li>
+            </pred>
+            <pred class="parente">
                 <li>y,z</li>
             </pred>
         </body>

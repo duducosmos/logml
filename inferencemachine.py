@@ -8,10 +8,11 @@ Date: 08/09/2017
 """
 
 from gettext import gettext as _
-
+from functools import reduce
+from itertools import product
 from parser import Parser
 from exceptions import InputArgsSizeError
-from numpy import where, array, array_equal
+from numpy import where, array, array_equal, in1d, intersect1d, concatenate
 
 
 class Node(object):
@@ -22,9 +23,11 @@ class Node(object):
 
     def __init__(self, data):
         self.data = data
+        self.result = None
         self.children = []
         self.parente = None
         self.children_result = []
+        self.children_args = []
 
     def add_child(self, obj):
         """
@@ -39,6 +42,59 @@ class Node(object):
         self.parente = obj
 
 
+def in_common(result, args):
+    """
+    Given a list o result and a list of args, return the common elements
+    where the relation is mapping by args.
+    """
+    uniao = None
+    if len(args) == 1:
+        return result[0]
+
+    for i in args:
+        if uniao is None:
+            uniao = set(i)
+        else:
+            uniao = uniao & set(i)
+    uniao = list(uniao)
+    to_search = [where(array(i) == uniao)[0] for i in args]
+    tmp = [result[j][:, to_search[j]] for j in range(len(result))]
+    common = array(reduce(intersect1d, tmp))
+
+    return common, uniao
+
+
+def concatenate_result(node, result, uniao, common, predicate):
+    '''
+    Given a array of results, the union args, the common values and a predicate
+    concatenete the body result in a new result.
+    '''
+    tmp = []
+    for i, item in enumerate(result):
+
+        test = node.children_args[i][:]
+        for uni in uniao:
+            if uni in test:
+                test.remove(uni)
+        if test:
+            tmp2 = []
+            for cmi in common:
+                to_get = where(~(node.children_args[i] == array(uniao)))[0]
+                to_search = where(node.children_args[i] == array(uniao))[0]
+                index = where(item[:, to_search] == cmi)[0]
+                tmp2 += item[:, to_get][index].T.tolist()
+
+            tmp.append(tmp2)
+        else:
+            test = [node.data[predicate].index(uni) for uni in uniao
+                    if uni in node.data[predicate]]
+            if test:
+                tmp.append([[i] for i in common.T.tolist()])
+    tmp2 = []
+
+    for i in range(len(tmp[0])):
+        tmp2.append(array(list(product(*[tmp[j][i] for j in range(len(tmp))]))))
+    node.result = concatenate(tmp2)
 
 
 class InferenceMachine(object):
@@ -174,13 +230,45 @@ class InferenceMachine(object):
         """
         Depth-first post-order
         """
-
         for child in node.children:
             self.walk_tree_df_postorder(child, visit)
         visit(node)
 
+
+
     def visit(self, node):
-        print(node.data, node.level)
+        """
+        Set result in node
+        """
+        for key in node.data:
+            if key in self.facts:
+
+                result = self._get_facts(key, node.data[key])
+                node.parente.children_result += [result]
+                node.parente.children_args += [node.data[key]]
+                node.result = result
+            else:
+                #if node.level == 0:
+                #    print(key, node.children_result)
+
+                if node.level > 0:
+                    node.parente.children_args += [node.data[key]]
+
+                result = [res[1] for res in node.children_result]
+
+                if len(result) == 1 and len(node.data[key]) == 1:
+                    node.result = result[0]
+                    return
+
+                common, uniao = in_common(result, node.children_args)
+                if len(node.data[key]) == 1:
+                    node.result = common
+                else:
+                    concatenate_result(node, result, uniao, common, key)
+
+                if node.level > 0:
+                    if node.result.tolist():
+                        node.parente.children_result += [(True, node.result)]
 
 
     def tree_rule(self, predicate):
@@ -202,6 +290,7 @@ class InferenceMachine(object):
             self.__add_child(root)
 
             self.walk_tree_df_postorder(root, self.visit)
+        return root.result
 
 
     def question(self, predicate, *args, **kwargs):
@@ -223,7 +312,7 @@ class InferenceMachine(object):
             return facts
 
         if predicate in self.rules:
-            self.tree_rule(predicate)
+            return self.tree_rule(predicate)
 
 
 if __name__ == "__main__":
@@ -240,6 +329,9 @@ if __name__ == "__main__":
     print(OBJ.question("quadrado", "3", "2", "25"))
     '''
     #print(OBJ.question("parente", "y", "x"))
-    print(OBJ.question("bisavo"))
-    #print(OBJ.question("gripe"))
-    #print(OBJ.question("mortal"))
+    print(OBJ.question("avo"))
+    print(OBJ.question("gripe"))
+    print(OBJ.question("pai"))
+    print(OBJ.question("filho"))
+    print(OBJ.question("mortal"))
+    print(OBJ.question("avoh"))

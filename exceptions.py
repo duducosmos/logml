@@ -14,6 +14,7 @@ class InputArgsSizeError(Exception):
     """
     pass
 
+
 class OnlyOneClausure(Exception):
     """
     Return Error when it is use more than one Clausure in comman  in class.

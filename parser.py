@@ -203,6 +203,7 @@ class Parser(object):
                     _("Warning: Singleton variable {0} in {1}".format(i, predicate)),
                     SyntaxWarning
                     )
+
         return head, body
 
     def validate_conditional(self, predicate):
