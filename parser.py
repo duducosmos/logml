@@ -9,11 +9,12 @@ Date: 22/08/2017
 """
 
 import sys
+from  collections import OrderedDict
 import warnings
 from unicodedata import normalize
 from gettext import gettext as _
 
-from exceptions import OnlyOneClausure, OnVarNeed, NoVarConstFound
+from exceptions import OnlyOneClausure, OnVarNeed, NoVarConstFound, NoRecursionPermited
 
 from validators import validate_meta, validate_meta_star
 from numpy import array
@@ -77,7 +78,7 @@ def get_clausures(axioms):
     """
     Separete clausures tipe from axioms.
     """
-    clausures = {}
+    clausures = OrderedDict()
     for axiom in axioms:
         if "head" in axiom and "body" not in axiom:
             if "fact" not in clausures:
@@ -128,7 +129,7 @@ class Parser(object):
         """
         Return a dict of facts and corresponding array of facts
         """
-        facts = {}
+        facts = OrderedDict()
         for fact in self.facts:
             facts[fact] = _facts_array(self.facts[fact])
         return facts
@@ -139,10 +140,13 @@ class Parser(object):
                 raise NameError(_("\"{}\" not declared".format(predicate)))
         return False
 
-    def _get_body(self, comp):
+    def _get_body(self, comp, head_pred):
         body = []
         all_vars = []
         for key, value in comp.items():
+            if key == head_pred:
+                raise NoRecursionPermited(_("No recursion permited: ") + head_pred)
+
             if isinstance(value, list):
 
                 for arg in value:
@@ -175,7 +179,7 @@ class Parser(object):
         Separete head, body of a rule
         """
 
-        head = {}
+        head = OrderedDict()
         in_head = []
         all_vars = []
 
@@ -193,7 +197,7 @@ class Parser(object):
                     NoVarConstFound(
                         _("No vars or constants found in {}".format(predicate)))
             else:
-                body = self._get_body(comp)
+                body = self._get_body(comp, predicate)
                 all_vars += body[1]
                 body = body[0]
 
@@ -300,7 +304,7 @@ class Parser(object):
     def get_gols(self):
         """Get All gols in the logml file"""
         if 'gol' in self.clausures:
-            gols = {}
+            gols = OrderedDict()
             for gol in self.clausures["gol"]:
                 gols[remover_acentos(gol['body']["pred"]["@class"])] = \
                     _parse_li(gol['body']["pred"]["li"])
@@ -310,15 +314,17 @@ class Parser(object):
         """Get All conditional"""
 
         if "conditional" in self.clausures:
-            conditionals = {}
+            conditionals = OrderedDict()
 
             for conditional in self.clausures["conditional"]:
-                body = conditional['body']["pred"]
+                bodyi = conditional['body']["pred"]
+                body = OrderedDict()
 
-                if isinstance(body, list):
-                    body = {bi["@class"]: _parse_li(bi["li"]) for bi in body}
+                if isinstance(bodyi, list):
+                    for bi in bodyi:
+                        body[bi["@class"]] = _parse_li(bi["li"])
                 else:
-                    body = {body["@class"]: _parse_li(body["li"])}
+                    body[bodyi["@class"]] = _parse_li(bodyi["li"])
 
                 head_li = _parse_li(conditional['head']["pred"]["li"])
                 if isinstance(head_li, list):
@@ -339,7 +345,7 @@ class Parser(object):
         """
 
         if "fact" in self.clausures:
-            unconditionals = {}
+            unconditionals = OrderedDict()
             for unconditional in self.clausures['fact']:
                 facts = unconditional['head']["pred"]
 

@@ -8,6 +8,7 @@ Date: 08/09/2017
 """
 
 from gettext import gettext as _
+from copy import copy
 from functools import reduce
 from itertools import product
 from parser import Parser
@@ -24,6 +25,15 @@ class Node(object):
     def __init__(self, data):
         self.data = data
         self.result = None
+        self.children = []
+        self.parente = None
+        self.children_result = []
+        self.children_args = []
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type_, value, traceback):
         self.children = []
         self.parente = None
         self.children_result = []
@@ -69,28 +79,32 @@ def concatenate_result(node, result, uniao, common, predicate):
     Given a array of results, the union args, the common values and a predicate
     concatenete the body result in a new result.
     '''
+
     tmp = []
     for i, item in enumerate(result):
-
         test = node.children_args[i][:]
-        for uni in uniao:
-            if uni in test:
-                test.remove(uni)
+        [test.remove(unj) for unj in uniao if unj in test]
+
         if test:
             tmp2 = []
             for cmi in common:
-                to_get = where(~(node.children_args[i] == array(uniao)))[0]
-                to_search = where(node.children_args[i] == array(uniao))[0]
-                index = where(item[:, to_search] == cmi)[0]
-                tmp2 += item[:, to_get][index].T.tolist()
+                for uni in uniao:
+                    to_get = where(~(array(node.children_args[i]) == uni))[0]
+                    to_search = where(array(node.children_args[i]) == uni)[0]
+                    index = where(item[:, to_search] == cmi)[0]
+                    tmp2 += item[:, to_get][index].T.tolist()
+
 
             tmp.append(tmp2)
         else:
+
             test = [node.data[predicate].index(uni) for uni in uniao
                     if uni in node.data[predicate]]
             if test:
-                tmp.append([[i] for i in common.T.tolist()])
+                listcommon = [[cmk] for cmk in common.T.tolist()]
+                tmp.append(listcommon)
     tmp2 = []
+
 
     for i in range(len(tmp[0])):
         tmp2.append(array(list(product(*[tmp[j][i] for j in range(len(tmp))]))))
@@ -202,30 +216,6 @@ class InferenceMachine(object):
         return True, self.facts[predicate]
 
 
-    def _add_child(self, node):
-        for key in node.data:
-            if key not in self.facts:
-                body = self._parser.expanding_rule(key)[1]
-                for bdi in body:
-                    for key_j in bdi:
-                        if key_j not in self.facts:
-                            tmp = Node(bdi)
-                            tmp.level = node.level + 1
-                            tmp.add_parent(node)
-                            node.add_child(tmp)
-                            self.__add_child(node)
-
-                        if key_j in self.facts:
-                            tmp = Node(bdi)
-                            tmp.level = node.level + 1
-                            tmp.add_parent(node)
-                            node.add_child(tmp)
-
-    def __add_child(self, node):
-        if node.children:
-            for subnode in node.children:
-                self._add_child(subnode)
-
     def walk_tree_df_postorder(self, node, visit):
         """
         Depth-first post-order
@@ -233,8 +223,6 @@ class InferenceMachine(object):
         for child in node.children:
             self.walk_tree_df_postorder(child, visit)
         visit(node)
-
-
 
     def visit(self, node):
         """
@@ -248,8 +236,6 @@ class InferenceMachine(object):
                 node.parente.children_args += [node.data[key]]
                 node.result = result
             else:
-                #if node.level == 0:
-                #    print(key, node.children_result)
 
                 if node.level > 0:
                     node.parente.children_args += [node.data[key]]
@@ -270,27 +256,54 @@ class InferenceMachine(object):
                     if node.result.tolist():
                         node.parente.children_result += [(True, node.result)]
 
+    def _add_child(self, node):
+        for key in node.data:
+            if key not in self.facts:
+                body = self._parser.expanding_rule(key)[1]
+                for bdi in body:
+                    for key_j in bdi:
+                        if key_j not in self.facts:
+                            tmp = Node(bdi)
+                            tmp.level = node.level + 1
+                            tmp.add_parent(node)
+                            node.add_child(tmp)
+                            self.__add_child(node)
+
+                        if key_j in self.facts:
+                            tmp = Node(bdi)
+                            tmp.level = node.level + 1
+                            tmp.add_parent(node)
+                            node.add_child(tmp)
+
+
+    def __add_child(self, node):
+        if node.children:
+            for subnode in node.children:
+                self._add_child(subnode)
+
 
     def tree_rule(self, predicate):
         """
         Generate three of rule
         """
-        print("\n")
 
         if predicate in self.facts:
             return self._get_facts(predicate)
         else:
             head, body = self._parser.expanding_rule(predicate)
-            root = Node(head)
-            for data in body:
-                tmp = Node(data)
-                tmp.level = root.level + 1
-                tmp.add_parent(root)
-                root.add_child(tmp)
-            self.__add_child(root)
+            with Node(head) as root:
+                root = Node(head)
+                for data in body:
+                    tmp = Node(data)
+                    tmp.level = root.level + 1
+                    tmp.add_parent(root)
+                    root.add_child(tmp)
+                self.__add_child(root)
 
-            self.walk_tree_df_postorder(root, self.visit)
-        return root.result
+                self.walk_tree_df_postorder(root, self.visit)
+                result = copy(root.result)
+
+        return result
 
 
     def question(self, predicate, *args, **kwargs):
@@ -329,9 +342,22 @@ if __name__ == "__main__":
     print(OBJ.question("quadrado", "3", "2", "25"))
     '''
     #print(OBJ.question("parente", "y", "x"))
-    print(OBJ.question("avo"))
+    #print(OBJ.question("avo"))
+    print("\ngripe")
     print(OBJ.question("gripe"))
+    print("\npai")
     print(OBJ.question("pai"))
+    print("\nmae")
+    print(OBJ.question("mae"))
+    print("\nfilho")
     print(OBJ.question("filho"))
+    print("\nmortal")
     print(OBJ.question("mortal"))
+    print("\navoh")
     print(OBJ.question("avoh"))
+    print("\nbisavo")
+    print(OBJ.question("bisavo"))
+    print("\nbisavoh")
+    print(OBJ.question("bisavoh"))
+    print("\ntataravo")
+    print(OBJ.question("tataravo"))

@@ -14,6 +14,11 @@ class InputArgsSizeError(Exception):
     """
     pass
 
+class NoRecursionPermited(Exception):
+    """
+    Return Error when the same predicate is declared in head and body of the same rule.
+    """
+    pass
 
 class OnlyOneClausure(Exception):
     """

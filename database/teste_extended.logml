@@ -121,12 +121,13 @@
             </pred>
         </head>
         <body>
-            <pred class="parente">
-                <li>x,y</li>
-            </pred>
             <pred class="homem">
                 <li>x</li>
             </pred>
+            <pred class="parente">
+                <li>x,y</li>
+            </pred>
+
         </body>
     </axiom>
     <axiom>
@@ -140,9 +141,8 @@
             <pred class="homem">
                 <li>x</li>
             </pred>
-
             <pred class="parente">
-                <li>x,y</li>
+                <li>y,x</li>
             </pred>
 
         </body>
@@ -155,12 +155,13 @@
             </pred>
         </head>
         <body>
-            <pred class="parente">
-                <li>x,y</li>
-            </pred>
             <pred class="mulher">
                 <li>x</li>
             </pred>
+            <pred class="parente">
+                <li>x,y</li>
+            </pred>
+
         </body>
     </axiom>
     <axiom>
@@ -202,6 +203,38 @@
         </head>
         <body>
             <pred class="avo">
+                <li>x,y</li>
+            </pred>
+            <pred class="parente">
+                <li>y,z</li>
+            </pred>
+        </body>
+    </axiom>
+    <axiom>
+        <head>
+            <pred class="bisavoh">
+                <meta>* é #BISAVO HOMEM# de *</meta>
+                <li>x,z</li>
+            </pred>
+        </head>
+        <body>
+            <pred class="homem">
+                <li>x</li>
+            </pred>
+            <pred class="bisavo">
+                <li>x,z</li>
+            </pred>
+        </body>
+    </axiom>
+    <axiom>
+        <head>
+            <pred class="tataravo">
+                <meta>* é #TATARAVO# de *</meta>
+                <li>x,z</li>
+            </pred>
+        </head>
+        <body>
+            <pred class="bisavo">
                 <li>x,y</li>
             </pred>
             <pred class="parente">
