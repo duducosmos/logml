@@ -50,10 +50,12 @@ def _parse_li(arg):
     elif isinstance(arg, dict):
         return [{arg["@type"]: arg["#text"].split(",")}]
 
+
     out = []
     for i in arg:
         if isinstance(i, dict):
             tmp = {i["@type"]: i["#text"].split(",")}
+
         else:
             tmp = {"1": i.split(",")}
         out.append(tmp)
@@ -104,8 +106,21 @@ def _facts_array(constants):
         return array(constants["1"])
 
     for const in constants:
-        tmp.append(const["1"])
+        if "1" in const:
+            tmp.append(const["1"])
     return array(tmp)
+
+def _facts_array_dynamic(constants):
+    tmp = []
+
+    if isinstance(constants, dict):
+        if "dynamic" in constants:
+            return constants['dynamic']
+
+    for const in constants:
+        if "dynamic"  in const:
+            tmp.append(const["dynamic"])
+    return tmp
 
 
 class Parser(object):
@@ -124,6 +139,18 @@ class Parser(object):
             #self.expanding_rule(predicate)
 
         self.predicates = self.get_predicates()
+
+    def get_dynamic_facts(self):
+        """
+        Return a list of Dynamic Facts, for real time desicion.
+        """
+        facts = OrderedDict()
+        for fact in self.facts:
+            tmp = _facts_array_dynamic(self.facts[fact])
+            if tmp:
+                facts[fact] = array(tmp)
+        return facts
+
 
     def get_array_facts(self):
         """
@@ -269,8 +296,8 @@ class Parser(object):
                         predicates.append({remover_acentos(
                             sub_fact["@class"]): None})
 
-            else:
-                print(fact["head"]["pred"])
+            #else:
+            #    print(fact["head"]["pred"])
         return predicates
 
     def get_predicates(self):
@@ -351,9 +378,11 @@ class Parser(object):
 
                 if isinstance(facts, list):
                     for fts in facts:
+
                         fts_li = _parse_li(fts["li"])
                         unconditionals[remover_acentos(fts["@class"])] = fts_li
                 else:
+
                     fts_li = _parse_li(fts["li"])
                     unconditionals[remover_acentos(unconditional['head']["pred"]["@class"])] = \
                         fts_li
@@ -362,7 +391,8 @@ class Parser(object):
 
 if __name__ == "__main__":
     OBJ = Parser("./database/teste_extended.logml")
-    print("Predicados : {}".format(OBJ.get_predicates()))
-    print("Constants : {}".format(OBJ.constants))
-    print("Rules : {}".format(OBJ.conditionals))
-    print("Facts : {}".format(OBJ.facts))
+    #print("Predicados : {}".format(OBJ.get_predicates()))
+    #print("Constants : {}".format(OBJ.constants))
+    #print("Rules : {}".format(OBJ.conditionals))
+    #print("Facts : {}".format(OBJ.facts))
+    print("Dynamic facts {}".format(OBJ.get_dynamic_facts()))

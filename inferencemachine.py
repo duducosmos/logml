@@ -9,106 +9,38 @@ Date: 08/09/2017
 
 from gettext import gettext as _
 from copy import copy
-from functools import reduce
-from itertools import product
+import sys
+
 from parser import Parser
 from exceptions import InputArgsSizeError
-from numpy import where, array, array_equal, in1d, intersect1d, concatenate
+from numpy import where, array, array_equal
 
+from treedata import Node, in_common, concatenate_result
 
-class Node(object):
-    """
-    Tree of rule
-    """
-    level = 0
+IS_PYTHON3 = sys.version_info.major == 3
+if IS_PYTHON3:
+    from functools import lru_cache as memoize
+else:
+    from functools import wraps
 
-    def __init__(self, data):
-        self.data = data
-        self.result = None
-        self.children = []
-        self.parente = None
-        self.children_result = []
-        self.children_args = []
+    def memoize(function):
+        '''
+        Create a cache for function
+        '''
+        memo = {}
 
-    def __enter__(self):
-        pass
+        @wraps(function)
+        def wrapper(*args):
+            '''
+            Wrapper
+            '''
+            if args in memo:
+                return memo[args]
 
-    def __exit__(self, type_, value, traceback):
-        self.children = []
-        self.parente = None
-        self.children_result = []
-        self.children_args = []
-
-    def add_child(self, obj):
-        """
-        add child
-        """
-        self.children.append(obj)
-
-    def add_parent(self, obj):
-        """
-        Set the parent reference
-        """
-        self.parente = obj
-
-
-def in_common(result, args):
-    """
-    Given a list o result and a list of args, return the common elements
-    where the relation is mapping by args.
-    """
-    uniao = None
-    if len(args) == 1:
-        return result[0]
-
-    for i in args:
-        if uniao is None:
-            uniao = set(i)
-        else:
-            uniao = uniao & set(i)
-    uniao = list(uniao)
-    to_search = [where(array(i) == uniao)[0] for i in args]
-    tmp = [result[j][:, to_search[j]] for j in range(len(result))]
-    common = array(reduce(intersect1d, tmp))
-
-    return common, uniao
-
-
-def concatenate_result(node, result, uniao, common, predicate):
-    '''
-    Given a array of results, the union args, the common values and a predicate
-    concatenete the body result in a new result.
-    '''
-
-    tmp = []
-    for i, item in enumerate(result):
-        test = node.children_args[i][:]
-        [test.remove(unj) for unj in uniao if unj in test]
-
-        if test:
-            tmp2 = []
-            for cmi in common:
-                for uni in uniao:
-                    to_get = where(~(array(node.children_args[i]) == uni))[0]
-                    to_search = where(array(node.children_args[i]) == uni)[0]
-                    index = where(item[:, to_search] == cmi)[0]
-                    tmp2 += item[:, to_get][index].T.tolist()
-
-
-            tmp.append(tmp2)
-        else:
-
-            test = [node.data[predicate].index(uni) for uni in uniao
-                    if uni in node.data[predicate]]
-            if test:
-                listcommon = [[cmk] for cmk in common.T.tolist()]
-                tmp.append(listcommon)
-    tmp2 = []
-
-
-    for i in range(len(tmp[0])):
-        tmp2.append(array(list(product(*[tmp[j][i] for j in range(len(tmp))]))))
-    node.result = concatenate(tmp2)
+            rvi = function(*args)
+            memo[args] = rvi
+            return rvi
+        return wrapper
 
 
 class InferenceMachine(object):
@@ -121,7 +53,7 @@ class InferenceMachine(object):
         self.facts = self._parser.get_array_facts()
         self.predicates = [list(i.keys())[0] for i in self._parser.predicates]
         self.rules = self._parser.conditionals
-
+        self.dynamic_facts = self._parser.get_dynamic_facts()
 
     def know_about(self):
         """
@@ -172,8 +104,16 @@ class InferenceMachine(object):
 
         return True, self.facts[predicate][list(subset)]
 
+    def _get_facts(self, predicate, *args, **kwargs):
 
-    def _get_facts(self, predicate, *args, precise=False):
+        if "precise" in kwargs:
+            precise = kwargs["precise"]
+        else:
+            precise = False
+
+
+        if predicate in self.dynamic_facts:
+            self.set_dynamic_fact(predicate)
 
         args = args[0]
 
@@ -214,7 +154,6 @@ class InferenceMachine(object):
             return False, neg
 
         return True, self.facts[predicate]
-
 
     def walk_tree_df_postorder(self, node, visit):
         """
@@ -275,13 +214,12 @@ class InferenceMachine(object):
                             tmp.add_parent(node)
                             node.add_child(tmp)
 
-
     def __add_child(self, node):
         if node.children:
             for subnode in node.children:
                 self._add_child(subnode)
 
-
+    @memoize(maxsize=32)
     def tree_rule(self, predicate):
         """
         Generate three of rule
@@ -305,6 +243,27 @@ class InferenceMachine(object):
 
         return result
 
+    def set_dynamic_fact(self, predicate, args=None):
+        """
+        Define dynamicaly the current values of fact
+        """
+
+        if args is None:
+            print(_("Dynamic Fact: ") + predicate + "\n")
+            tmp = []
+            for i in self.dynamic_facts[predicate]:
+                tmp2 = []
+                for j in i:
+                    tmp2.append(input(_("What is the current value of {}: ".format(j))))
+                tmp.append(tmp2)
+
+            self.facts[predicate] = array(tmp)
+        else:
+            if args.size != self.dynamic_facts[predicate].size:
+                raise NameError("")
+            else:
+                self.facts[predicate] = args
+
 
     def question(self, predicate, *args, **kwargs):
         """
@@ -317,6 +276,11 @@ class InferenceMachine(object):
             precise = False
 
         if predicate in self.facts:
+            facts = None
+
+            if predicate in self.dynamic_facts:
+                self.set_dynamic_fact(predicate)
+
             if args:
                 facts = self._get_facts(predicate, args, precise=precise)
             else:
@@ -341,8 +305,10 @@ if __name__ == "__main__":
     print(OBJ.question("quadrado", "2", "3", "25"))
     print(OBJ.question("quadrado", "3", "2", "25"))
     '''
+
     #print(OBJ.question("parente", "y", "x"))
-    #print(OBJ.question("avo"))
+    # print(OBJ.question("avo"))
+    '''
     print("\ngripe")
     print(OBJ.question("gripe"))
     print("\npai")
@@ -361,3 +327,13 @@ if __name__ == "__main__":
     print(OBJ.question("bisavoh"))
     print("\ntataravo")
     print(OBJ.question("tataravo"))
+    print("\ntetraravoh")
+    print(OBJ.question("tataravoh"))
+    print("\ntetraravo")
+    print(OBJ.question("tetraravo"))
+    '''
+
+    print("\nfarol")
+    #print(OBJ.question("farol"))
+    print("\nmudar_estado")
+    print(OBJ.question("mudar_estado"))

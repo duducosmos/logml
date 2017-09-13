@@ -65,7 +65,40 @@
                 <li>lisa</li>
                 <li>dino</li>
             </pred>
+            <pred class="farol" >
+                <meta>o #FAROL# está *</meta>
+                <li type="dynamic">estado</li>
+            </pred>
+            <pred class="cor">
+                <meta>a #COR# é *</meta>
+                <li>amarelo</li>
+                <li>verde</li>
+                <li>vermelho</li>
+            </pred>
+            <pred class="alerta">
+                <meta>* se #ALERTA# *</meta>
+                <li>parar,vermelho</li>
+                <li>atenção,amarelo</li>
+                <li>seguir,verde</li>
+            </pred>
+
         </head>
+    </axiom>
+    <axiom>
+        <head>
+            <pred class="mudar_estado">
+                <meta> #MUDAR ESTADO# para * quando *</meta>
+                <li>x,y</li>
+            </pred>
+        </head>
+        <body>
+            <pred class="alerta">
+                <li>x,y</li>
+            </pred>
+            <pred class="farol">
+                <li>y</li>
+            </pred>
+        </body>
     </axiom>
     <axiom>
         <head>
@@ -235,6 +268,38 @@
         </head>
         <body>
             <pred class="bisavo">
+                <li>x,y</li>
+            </pred>
+            <pred class="parente">
+                <li>y,z</li>
+            </pred>
+        </body>
+    </axiom>
+    <axiom>
+        <head>
+            <pred class="tataravoh">
+                <meta>* é #TATARAVO HOMEM# de *</meta>
+                <li>x,z</li>
+            </pred>
+        </head>
+        <body>
+            <pred class="homem">
+                <li>x</li>
+            </pred>
+            <pred class="tataravo">
+                <li>x,z</li>
+            </pred>
+        </body>
+    </axiom>
+    <axiom>
+        <head>
+            <pred class="tetraravo">
+                <meta>* é #TETRARAVO# de *</meta>
+                <li>x,z</li>
+            </pred>
+        </head>
+        <body>
+            <pred class="tataravo">
                 <li>x,y</li>
             </pred>
             <pred class="parente">

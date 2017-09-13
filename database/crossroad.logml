@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<logml>
+<axiom>
+    <head>
+        <pred class="cor">
+            <meta>a #COR# é *</meta>
+            <li>vermelha</li>
+            <li>verde</li>
+            <li>amarela</li>
+        </pred>
+    </head>
+</axiom>
+<axiom>
+    <head>
+        <pred class="cor">
+            <meta>a #COR# é *</meta>
+            <li>vermelha</li>
+            <li>verde</li>
+            <li>amarela</li>
+        </pred>
+    </head>
+    <body>
+        <pre class="">
+        </pre>
+    </body>
+</axiom>
+</logml>
