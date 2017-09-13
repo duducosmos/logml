@@ -1,0 +1,50 @@
+{
+    "logml": {
+        "axiom": [
+            {
+                "head": {
+                    "pred": [
+                        {
+                            "@class": "traffic_light",
+                            "li": {
+                                "#text": "current",
+                                "@type": "dynamic"
+                            },
+                            "meta": "The #TRAFFIC LIGHT# is *"
+                        },
+                        {
+                            "@class": "collor",
+                            "li": [
+                                "stop,red",
+                                "atention,yellow",
+                                "cross,green"
+                            ],
+                            "meta": "* if #collor# is *"
+                        }
+                    ]
+                }
+            },
+            {
+                "body": {
+                    "pred": [
+                        {
+                            "@class": "collor",
+                            "li": "x,y"
+                        },
+                        {
+                            "@class": "traffic_light",
+                            "li": "y"
+                        }
+                    ]
+                },
+                "head": {
+                    "pred": {
+                        "@class": "cross_road",
+                        "li": "x,y",
+                        "meta": "#CROSS ROAD#  * when *"
+                    }
+                }
+            }
+        ]
+    }
+}

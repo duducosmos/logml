@@ -423,7 +423,7 @@ if __name__ == "__main__":
     #print("Rules : {}".format(OBJ.conditionals))
     #print("Facts : {}".format(OBJ.facts))
     print("Dynamic facts {}".format(OBJ.get_predicates()))
-    #logm_to_json("./database/teste_extended.logml",
-    #                   savefile="./database/teste_extended.json")
+    logm_to_json("./database/crossroad.logml",
+                       savefile="./database/crossroad.json")
     OBJ = Parser("./database/teste_extended.json")
     print("Dynamic facts {}".format(OBJ.get_predicates()))

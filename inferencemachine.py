@@ -298,8 +298,6 @@ class InferenceMachine(object):
 if __name__ == "__main__":
 
 
-
-
     OBJ = InferenceMachine("./database/teste_extended.logml")
     OBJ.set_dynamic_fact_interface("farol", Connector())
 
