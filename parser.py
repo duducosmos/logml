@@ -9,7 +9,9 @@ Date: 22/08/2017
 """
 
 import sys
-from  collections import OrderedDict
+import json
+
+from collections import OrderedDict
 import warnings
 from unicodedata import normalize
 from gettext import gettext as _
@@ -20,7 +22,6 @@ from validators import validate_meta, validate_meta_star
 from numpy import array
 
 import xmltodict
-
 
 
 IS_PYTHON3 = sys.version_info.major == 3
@@ -50,7 +51,6 @@ def _parse_li(arg):
     elif isinstance(arg, dict):
         return [{arg["@type"]: arg["#text"].split(",")}]
 
-
     out = []
     for i in arg:
         if isinstance(i, dict):
@@ -67,13 +67,39 @@ def get_axioms(logml_file):
     Return all Axioms from a File
     """
     axioms = None
+    end_file = logml_file.split(".")[-1]
+    result = None
+
+    if end_file == "logml":
+        with open(logml_file, 'r') as logml:
+            text = logml.read()
+            result = xmltodict.parse(text)
+
+
+    if end_file == "json":
+        with open(logml_file, 'r') as logml:
+            text = logml.read()
+            result = json.loads(text, object_pairs_hook=OrderedDict)
+
+    if "axiom" in result["logml"]:
+        axioms = result["logml"]["axiom"]
+
+    return axioms
+
+
+def logm_to_json(logml_file, savefile=None):
+    """
+    Convert logml file to json.
+    """
     with open(logml_file, 'r') as logml:
         text = logml.read()
         result = xmltodict.parse(text)
-
-        if "axiom" in result["logml"]:
-            axioms = result["logml"]["axiom"]
-    return axioms
+        jdata = json.loads(json.dumps(result, indent=4))
+        if savefile is not None:
+            with open(savefile, "w") as outfile:
+                json.dump(jdata, outfile, sort_keys=True, indent=4,
+                          ensure_ascii=False)
+        return jdata
 
 
 def get_clausures(axioms):
@@ -110,6 +136,7 @@ def _facts_array(constants):
             tmp.append(const["1"])
     return array(tmp)
 
+
 def _facts_array_dynamic(constants):
     tmp = []
 
@@ -118,7 +145,7 @@ def _facts_array_dynamic(constants):
             return constants['dynamic']
 
     for const in constants:
-        if "dynamic"  in const:
+        if "dynamic" in const:
             tmp.append(const["dynamic"])
     return tmp
 
@@ -136,7 +163,7 @@ class Parser(object):
         self.conditionals = self.get_condictionals()
         for predicate in self.conditionals:
             self.validate_conditional(predicate)
-            #self.expanding_rule(predicate)
+            # self.expanding_rule(predicate)
 
         self.predicates = self.get_predicates()
 
@@ -150,7 +177,6 @@ class Parser(object):
             if tmp:
                 facts[fact] = array(tmp)
         return facts
-
 
     def get_array_facts(self):
         """
@@ -172,7 +198,8 @@ class Parser(object):
         all_vars = []
         for key, value in comp.items():
             if key == head_pred:
-                raise NoRecursionPermited(_("No recursion permited: ") + head_pred)
+                raise NoRecursionPermited(
+                    _("No recursion permited: ") + head_pred)
 
             if isinstance(value, list):
 
@@ -199,7 +226,6 @@ class Parser(object):
                     body.append({key: value["1"]})
 
         return body, all_vars
-
 
     def expanding_rule(self, predicate):
         """
@@ -231,9 +257,10 @@ class Parser(object):
         for i in list(set(all_vars)):
             if all_vars.count(i) == 1:
                 warnings.warn(
-                    _("Warning: Singleton variable {0} in {1}".format(i, predicate)),
+                    _("Warning: Singleton variable {0} in {1}".format(
+                        i, predicate)),
                     SyntaxWarning
-                    )
+                )
 
         return head, body
 
@@ -296,7 +323,7 @@ class Parser(object):
                         predicates.append({remover_acentos(
                             sub_fact["@class"]): None})
 
-            #else:
+            # else:
             #    print(fact["head"]["pred"])
         return predicates
 
@@ -395,4 +422,8 @@ if __name__ == "__main__":
     #print("Constants : {}".format(OBJ.constants))
     #print("Rules : {}".format(OBJ.conditionals))
     #print("Facts : {}".format(OBJ.facts))
-    print("Dynamic facts {}".format(OBJ.get_dynamic_facts()))
+    print("Dynamic facts {}".format(OBJ.get_predicates()))
+    #logm_to_json("./database/teste_extended.logml",
+    #                   savefile="./database/teste_extended.json")
+    OBJ = Parser("./database/teste_extended.json")
+    print("Dynamic facts {}".format(OBJ.get_predicates()))

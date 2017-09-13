@@ -20,6 +20,12 @@ class NoRecursionPermited(Exception):
     """
     pass
 
+class NoDefinedDynamicClass(Exception):
+    """
+    Return Error when no defined class for dynamic fact
+    """
+    pass
+
 class OnlyOneClausure(Exception):
     """
     Return Error when it is use more than one Clausure in comman  in class.

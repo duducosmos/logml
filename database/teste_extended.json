@@ -1,0 +1,405 @@
+{
+    "logml": {
+        "axiom": [
+            {
+                "head": {
+                    "pred": [
+                        {
+                            "@class": "mulher",
+                            "li": [
+                                "marta",
+                                "lisa",
+                                "lisa",
+                                "nancy",
+                                "sara",
+                                "mary",
+                                "susan"
+                            ],
+                            "meta": "* é uma #MULHER#"
+                        },
+                        {
+                            "@class": "quadrado",
+                            "li": "3,2,25",
+                            "meta": "* mais * ao #quadrado# é *"
+                        },
+                        {
+                            "@class": "homem",
+                            "li": [
+                                "Socrates",
+                                "dino",
+                                "tony",
+                                "abe",
+                                "bill",
+                                "john",
+                                "rob",
+                                "jill",
+                                "phil"
+                            ],
+                            "meta": "* é um #HOMEM#"
+                        },
+                        {
+                            "@class": "parente",
+                            "li": [
+                                "dino,tony",
+                                "tony,abe",
+                                "tony,sara",
+                                "abe,john",
+                                "bill,susan",
+                                "john,jill",
+                                "rob,phil",
+                                "marta,tony",
+                                "lisa,abe",
+                                "lisa,sara",
+                                "nancy,john",
+                                "sara,susan",
+                                "mary,jill",
+                                "susan,phil"
+                            ],
+                            "meta": "* é #PARENTE# de *"
+                        },
+                        {
+                            "@class": "febre",
+                            "li": [
+                                "lisa",
+                                "João",
+                                "dino"
+                            ],
+                            "meta": "* está com #FEBRE#"
+                        },
+                        {
+                            "@class": "mal_estar",
+                            "li": [
+                                "lisa",
+                                "João",
+                                "dino"
+                            ],
+                            "meta": "* sente #MAL ESTAR#"
+                        },
+                        {
+                            "@class": "dor_de_garganta",
+                            "li": [
+                                "josé",
+                                "marco",
+                                "lisa",
+                                "dino"
+                            ],
+                            "meta": "* sente #DOR DE GARGANTA#"
+                        },
+                        {
+                            "@class": "farol",
+                            "li": {
+                                "#text": "estado",
+                                "@type": "dynamic"
+                            },
+                            "meta": "o #FAROL# está *"
+                        },
+                        {
+                            "@class": "cor",
+                            "li": [
+                                "amarelo",
+                                "verde",
+                                "vermelho"
+                            ],
+                            "meta": "a #COR# é *"
+                        },
+                        {
+                            "@class": "alerta",
+                            "li": [
+                                "parar,vermelho",
+                                "atenção,amarelo",
+                                "seguir,verde"
+                            ],
+                            "meta": "* se #ALERTA# *"
+                        }
+                    ]
+                }
+            },
+            {
+                "body": {
+                    "pred": [
+                        {
+                            "@class": "alerta",
+                            "li": "x,y"
+                        },
+                        {
+                            "@class": "farol",
+                            "li": "y"
+                        }
+                    ]
+                },
+                "head": {
+                    "pred": {
+                        "@class": "mudar_estado",
+                        "li": "x,y",
+                        "meta": "#MUDAR ESTADO# para * quando *"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": {
+                        "@class": "homem",
+                        "li": "pessoa"
+                    }
+                },
+                "head": {
+                    "pred": {
+                        "@class": "mortal",
+                        "li": "pessoa",
+                        "meta": "* é #MORTAL#"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": [
+                        {
+                            "@class": "febre",
+                            "li": "x"
+                        },
+                        {
+                            "@class": "mal_estar",
+                            "li": "x"
+                        },
+                        {
+                            "@class": "dor_de_garganta",
+                            "li": "x"
+                        }
+                    ]
+                },
+                "head": {
+                    "pred": {
+                        "@class": "gripe",
+                        "li": "x",
+                        "meta": "* está com #GRIPE#"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": {
+                        "@class": "parente",
+                        "li": [
+                            "z,y",
+                            "z,x"
+                        ]
+                    }
+                },
+                "head": {
+                    "pred": {
+                        "@class": "irmao",
+                        "li": "x,y",
+                        "meta": "* é #IRMÃO# de *"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": [
+                        {
+                            "@class": "homem",
+                            "li": "x"
+                        },
+                        {
+                            "@class": "parente",
+                            "li": "x,y"
+                        }
+                    ]
+                },
+                "head": {
+                    "pred": {
+                        "@class": "pai",
+                        "li": "x,y",
+                        "meta": "* é #PAI# de *"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": [
+                        {
+                            "@class": "homem",
+                            "li": "x"
+                        },
+                        {
+                            "@class": "parente",
+                            "li": "y,x"
+                        }
+                    ]
+                },
+                "head": {
+                    "pred": {
+                        "@class": "filho",
+                        "li": "x,y",
+                        "meta": "* é #filho# de *"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": [
+                        {
+                            "@class": "mulher",
+                            "li": "x"
+                        },
+                        {
+                            "@class": "parente",
+                            "li": "x,y"
+                        }
+                    ]
+                },
+                "head": {
+                    "pred": {
+                        "@class": "mae",
+                        "li": "x,y",
+                        "meta": "* é #MÃE# de *"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": {
+                        "@class": "parente",
+                        "li": [
+                            "x,y",
+                            "y,z"
+                        ]
+                    }
+                },
+                "head": {
+                    "pred": {
+                        "@class": "avo",
+                        "li": "x,z",
+                        "meta": "* é #AVÔ# de *"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": [
+                        {
+                            "@class": "homem",
+                            "li": "x"
+                        },
+                        {
+                            "@class": "avo",
+                            "li": "x,z"
+                        }
+                    ]
+                },
+                "head": {
+                    "pred": {
+                        "@class": "avoh",
+                        "li": "x,z",
+                        "meta": "* é #AVÔh# de *"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": [
+                        {
+                            "@class": "avo",
+                            "li": "x,y"
+                        },
+                        {
+                            "@class": "parente",
+                            "li": "y,z"
+                        }
+                    ]
+                },
+                "head": {
+                    "pred": {
+                        "@class": "bisavo",
+                        "li": "x,z",
+                        "meta": "* é #BISAVO# de *"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": [
+                        {
+                            "@class": "homem",
+                            "li": "x"
+                        },
+                        {
+                            "@class": "bisavo",
+                            "li": "x,z"
+                        }
+                    ]
+                },
+                "head": {
+                    "pred": {
+                        "@class": "bisavoh",
+                        "li": "x,z",
+                        "meta": "* é #BISAVO HOMEM# de *"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": [
+                        {
+                            "@class": "bisavo",
+                            "li": "x,y"
+                        },
+                        {
+                            "@class": "parente",
+                            "li": "y,z"
+                        }
+                    ]
+                },
+                "head": {
+                    "pred": {
+                        "@class": "tataravo",
+                        "li": "x,z",
+                        "meta": "* é #TATARAVO# de *"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": [
+                        {
+                            "@class": "homem",
+                            "li": "x"
+                        },
+                        {
+                            "@class": "tataravo",
+                            "li": "x,z"
+                        }
+                    ]
+                },
+                "head": {
+                    "pred": {
+                        "@class": "tataravoh",
+                        "li": "x,z",
+                        "meta": "* é #TATARAVO HOMEM# de *"
+                    }
+                }
+            },
+            {
+                "body": {
+                    "pred": [
+                        {
+                            "@class": "tataravo",
+                            "li": "x,y"
+                        },
+                        {
+                            "@class": "parente",
+                            "li": "y,z"
+                        }
+                    ]
+                },
+                "head": {
+                    "pred": {
+                        "@class": "tetraravo",
+                        "li": "x,z",
+                        "meta": "* é #TETRARAVO# de *"
+                    }
+                }
+            }
+        ]
+    }
+}

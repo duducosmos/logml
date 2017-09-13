@@ -12,7 +12,9 @@ from copy import copy
 import sys
 
 from parser import Parser
-from exceptions import InputArgsSizeError
+from exceptions import InputArgsSizeError, NoDefinedDynamicClass
+from connector import Connector
+
 from numpy import where, array, array_equal
 
 from treedata import Node, in_common, concatenate_result
@@ -54,6 +56,7 @@ class InferenceMachine(object):
         self.predicates = [list(i.keys())[0] for i in self._parser.predicates]
         self.rules = self._parser.conditionals
         self.dynamic_facts = self._parser.get_dynamic_facts()
+        self.dynamic_facts_func = {}
 
     def know_about(self):
         """
@@ -243,26 +246,26 @@ class InferenceMachine(object):
 
         return result
 
-    def set_dynamic_fact(self, predicate, args=None):
+    def set_dynamic_fact_interface(self, predicate, connector):
+        """
+        The function must be return a list of args for a dynamic fact.
+        Connector must be a callable Class with the method get_args.
+        """
+        predargs = self.dynamic_facts[predicate]
+
+        self.dynamic_facts_func[predicate] = connector
+        self.dynamic_facts_func[predicate].set_args(args=predargs)
+
+
+    def set_dynamic_fact(self, predicate):
         """
         Define dynamicaly the current values of fact
         """
 
-        if args is None:
-            print(_("Dynamic Fact: ") + predicate + "\n")
-            tmp = []
-            for i in self.dynamic_facts[predicate]:
-                tmp2 = []
-                for j in i:
-                    tmp2.append(input(_("What is the current value of {}: ".format(j))))
-                tmp.append(tmp2)
-
-            self.facts[predicate] = array(tmp)
+        if predicate in self.dynamic_facts_func:
+            self.facts[predicate] = self.dynamic_facts_func[predicate].gets_args()
         else:
-            if args.size != self.dynamic_facts[predicate].size:
-                raise NameError("")
-            else:
-                self.facts[predicate] = args
+            raise NoDefinedDynamicClass(_("No defined class for dynamic fact: ") + predicate)
 
 
     def question(self, predicate, *args, **kwargs):
@@ -293,7 +296,14 @@ class InferenceMachine(object):
 
 
 if __name__ == "__main__":
+
+
+
+
     OBJ = InferenceMachine("./database/teste_extended.logml")
+    OBJ.set_dynamic_fact_interface("farol", Connector())
+
+
     '''
     print(OBJ.question("mulher", "marta"))
     print(OBJ.question("mulher", "mariano"))
@@ -334,6 +344,6 @@ if __name__ == "__main__":
     '''
 
     print("\nfarol")
-    #print(OBJ.question("farol"))
+    print(OBJ.question("farol"))
     print("\nmudar_estado")
     print(OBJ.question("mudar_estado"))
