@@ -14,11 +14,20 @@ class InputArgsSizeError(Exception):
     """
     pass
 
+
 class NoRecursionPermited(Exception):
     """
     Return Error when the same predicate is declared in head and body of the same rule.
     """
     pass
+
+
+class OnlyOneArgInDynamicClass(Exception):
+    """
+    Return Error for more than one arg in  dynamic fact
+    """
+    pass
+
 
 class NoDefinedDynamicClass(Exception):
     """
@@ -26,11 +35,13 @@ class NoDefinedDynamicClass(Exception):
     """
     pass
 
+
 class OnlyOneClausure(Exception):
     """
     Return Error when it is use more than one Clausure in comman  in class.
     """
     pass
+
 
 class OnVarNeed(Exception):
     """
@@ -38,11 +49,13 @@ class OnVarNeed(Exception):
     """
     pass
 
+
 class OnlyOneFactBySide(Exception):
     """
     Return Error when it is use more than one Clausure in comman  in class.
     """
     pass
+
 
 class EmptyFact(Exception):
     """
@@ -50,11 +63,13 @@ class EmptyFact(Exception):
     """
     pass
 
+
 class NoVarConstFound(Exception):
     """
     Return Error when no var os constant found in Clausure.
     """
     pass
+
 
 class InconsistenNumberOfArgsIFacts(Exception):
     """

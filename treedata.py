@@ -66,6 +66,7 @@ def in_common(result, args):
     to_search = [where(array(i) == uniao)[0] for i in args]
     tmp = [result[j][:, to_search[j]] for j in range(len(result))]
     common = array(reduce(intersect1d, tmp))
+    print(common)
 
     return common, uniao
 

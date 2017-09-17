@@ -17,7 +17,7 @@ from unicodedata import normalize
 from gettext import gettext as _
 
 from exceptions import OnlyOneClausure, OnVarNeed, NoVarConstFound, NoRecursionPermited
-
+from exceptions import OnlyOneArgInDynamicClass
 from validators import validate_meta, validate_meta_star
 from numpy import array
 
@@ -49,16 +49,24 @@ def _parse_li(arg):
         return {"1": arg.split(",")}
 
     elif isinstance(arg, dict):
+
         return [{arg["@type"]: arg["#text"].split(",")}]
 
     out = []
+    dynamic = 0
     for i in arg:
+
         if isinstance(i, dict):
+            if i["@type"] == "dynamic":
+                dynamic += 1
             tmp = {i["@type"]: i["#text"].split(",")}
 
         else:
             tmp = {"1": i.split(",")}
         out.append(tmp)
+
+    if dynamic > 1:
+        raise OnlyOneArgInDynamicClass(_("More than one arg in dynamic fact"))
     return out
 
 
@@ -73,6 +81,7 @@ def get_axioms(logml_file):
     if end_file == "logml":
         with open(logml_file, 'r') as logml:
             text = logml.read()
+
             result = xmltodict.parse(text)
 
 
@@ -107,6 +116,11 @@ def get_clausures(axioms):
     Separete clausures tipe from axioms.
     """
     clausures = OrderedDict()
+
+    if len(axioms) == 1:
+        clausures["fact"] = [axioms]
+        return clausures
+
     for axiom in axioms:
         if "head" in axiom and "body" not in axiom:
             if "fact" not in clausures:
@@ -140,6 +154,7 @@ def _facts_array(constants):
 def _facts_array_dynamic(constants):
     tmp = []
 
+
     if isinstance(constants, dict):
         if "dynamic" in constants:
             return constants['dynamic']
@@ -161,9 +176,9 @@ class Parser(object):
         self.constants = self.get_constants()
         self.gols = self.get_gols()
         self.conditionals = self.get_condictionals()
-        for predicate in self.conditionals:
-            self.validate_conditional(predicate)
-            # self.expanding_rule(predicate)
+        if self.conditionals is not None:
+            for predicate in self.conditionals:
+                self.validate_conditional(predicate)
 
         self.predicates = self.get_predicates()
 
@@ -221,7 +236,8 @@ class Parser(object):
 
                 if const_in_body:
                     body.append(
-                        {key: value["1"], "const": const_in_body})
+                        {key: value["1"]})
+                        #{key: value["1"], "const": const_in_body})
                 else:
                     body.append({key: value["1"]})
 
@@ -251,16 +267,21 @@ class Parser(object):
                         _("No vars or constants found in {}".format(predicate)))
             else:
                 body = self._get_body(comp, predicate)
+
                 all_vars += body[1]
                 body = body[0]
 
+
         for i in list(set(all_vars)):
+
             if all_vars.count(i) == 1:
-                warnings.warn(
-                    _("Warning: Singleton variable {0} in {1}".format(
-                        i, predicate)),
-                    SyntaxWarning
-                )
+                if i not in self.constants:
+                    warnings.warn(
+                        _("Warning: Singleton variable {0} in {1}".format(
+                            i, predicate)),
+                        SyntaxWarning
+                    )
+
 
         return head, body
 
@@ -323,8 +344,6 @@ class Parser(object):
                         predicates.append({remover_acentos(
                             sub_fact["@class"]): None})
 
-            # else:
-            #    print(fact["head"]["pred"])
         return predicates
 
     def get_predicates(self):
@@ -417,13 +436,13 @@ class Parser(object):
 
 
 if __name__ == "__main__":
-    OBJ = Parser("./database/teste_extended.logml")
+    #OBJ = Parser("./database/teste_extended.logml")
     #print("Predicados : {}".format(OBJ.get_predicates()))
     #print("Constants : {}".format(OBJ.constants))
     #print("Rules : {}".format(OBJ.conditionals))
     #print("Facts : {}".format(OBJ.facts))
-    print("Dynamic facts {}".format(OBJ.get_predicates()))
-    logm_to_json("./database/crossroad.logml",
-                       savefile="./database/crossroad.json")
-    OBJ = Parser("./database/teste_extended.json")
-    print("Dynamic facts {}".format(OBJ.get_predicates()))
+    #print("Dynamic facts {}".format(OBJ.get_predicates()))
+    #logm_to_json("./database/crossroad.logml",
+    #             savefile="./database/crossroad.json")
+    OBJ = Parser("./database/crossroad.logml")
+    print("Dynamic facts {}".format(OBJ.get_dynamic_facts()))

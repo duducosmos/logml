@@ -44,6 +44,41 @@ else:
             return rvi
         return wrapper
 
+def _search_facts(fact, predicate, args, argi):
+    subset = []
+    for j in args:
+        if j in argi:
+            index = where(args == j)[0][0]
+            seai = where(
+                fact[predicate][:, index] == j)[0]
+            if not subset:
+                subset = set(seai)
+            else:
+                subset = subset & set(seai)
+
+            if not list(seai):
+                argsi = ",".join(list(args))
+                neg = _("not({0}({1}))".format(
+                    predicate, argsi))
+                return False, neg
+        else:
+
+            index = where(args == j)[0][0]
+            seai = set(range(fact[predicate][:, index].size))
+
+            if not subset:
+                subset = set(seai)
+            else:
+                subset = subset & set(seai)
+
+    if not subset:
+        argsi = ",".join(list(args))
+        neg = _("not({0}({1}))".format(
+            predicate, argsi))
+        return False, neg
+
+    return True, fact[predicate][list(subset)]
+
 
 class InferenceMachine(object):
     """
@@ -73,41 +108,12 @@ class InferenceMachine(object):
         return know
 
     def _search_facts(self, predicate, args, argi):
-        subset = []
-        for j in args:
-            if j in argi:
-                index = where(argi == j)[0][0]
-                seai = where(
-                    self.facts[predicate][:, index] == j)[0]
-                if not subset:
-                    subset = set(seai)
-                else:
-                    subset = subset & set(seai)
 
-                if not list(seai):
-                    argsi = ",".join(list(args))
-                    neg = _("not({0}({1}))".format(
-                        predicate, argsi))
-                    return False, neg
-            else:
+        return _search_facts(self.facts, predicate, args, argi)
 
-                index = where(args == j)[0][0]
-                seai = set(range(self.facts[predicate][:, index].size))
-
-                if not subset:
-                    subset = set(seai)
-                else:
-                    subset = subset & set(seai)
-
-        if not subset:
-            argsi = ",".join(list(args))
-            neg = _("not({0}({1}))".format(
-                predicate, argsi))
-            return False, neg
-
-        return True, self.facts[predicate][list(subset)]
 
     def _get_facts(self, predicate, *args, **kwargs):
+
 
         if "precise" in kwargs:
             precise = kwargs["precise"]
@@ -198,24 +204,55 @@ class InferenceMachine(object):
                     if node.result.tolist():
                         node.parente.children_result += [(True, node.result)]
 
-    def _add_child(self, node):
-        for key in node.data:
-            if key not in self.facts:
-                body = self._parser.expanding_rule(key)[1]
-                for bdi in body:
-                    for key_j in bdi:
-                        if key_j not in self.facts:
-                            tmp = Node(bdi)
-                            tmp.level = node.level + 1
-                            tmp.add_parent(node)
-                            node.add_child(tmp)
-                            self.__add_child(node)
+    def __replace_const(self, node, pred):
+        head, body = self._parser.expanding_rule(pred)
 
-                        if key_j in self.facts:
-                            tmp = Node(bdi)
-                            tmp.level = node.level + 1
-                            tmp.add_parent(node)
-                            node.add_child(tmp)
+        for key in node.data:
+            args = node.data[key]
+            genargs = head[key]
+
+            for bdi in body:
+                for kbdi in bdi:
+                    for arg in bdi[kbdi]:
+                        if arg in genargs:
+                            arg_index = bdi[kbdi].index(arg)
+                            gen_index = genargs.index(arg)
+                            bdi[kbdi][arg_index] = args[gen_index]
+        return body
+
+
+    def __add_without_const(self, node, key):
+        if key not in self.facts:
+            body = self.__replace_const(node, key)
+            for bdi in body:
+                for key_j in bdi:
+                    if key_j not in self.facts:
+                        tmp = Node(bdi)
+                        tmp.level = node.level + 1
+                        tmp.add_parent(node)
+                        node.add_child(tmp)
+                        self.__add_child(node)
+
+                    if key_j in self.facts:
+                        tmp = Node(bdi)
+                        tmp.level = node.level + 1
+                        tmp.add_parent(node)
+                        node.add_child(tmp)
+
+    def __add_with_const(self, node):
+        for key in node.data:
+            if key != "const":
+                self.__add_without_const(node, key)
+
+
+    def _add_child(self, node):
+
+        if "const" in node.data:
+            self.__add_with_const(node)
+        else:
+            for key in node.data:
+                self.__add_without_const(node, key)
+
 
     def __add_child(self, node):
         if node.children:
@@ -297,51 +334,6 @@ class InferenceMachine(object):
 
 if __name__ == "__main__":
 
-
-    OBJ = InferenceMachine("./database/teste_extended.logml")
-    OBJ.set_dynamic_fact_interface("farol", Connector())
-
-
-    '''
-    print(OBJ.question("mulher", "marta"))
-    print(OBJ.question("mulher", "mariano"))
-    print(OBJ.question("parente", "tony", "x"))
-    print(OBJ.question("parente", "tony", "sara"))
-    print(OBJ.question("parente", "tony", "dino"))
-    print(OBJ.question("quadrado"))
-    print(OBJ.question("quadrado", "3", "2", "x"))
-    print(OBJ.question("quadrado", "2", "3", "25"))
-    print(OBJ.question("quadrado", "3", "2", "25"))
-    '''
-
-    #print(OBJ.question("parente", "y", "x"))
-    # print(OBJ.question("avo"))
-    '''
-    print("\ngripe")
-    print(OBJ.question("gripe"))
-    print("\npai")
-    print(OBJ.question("pai"))
-    print("\nmae")
-    print(OBJ.question("mae"))
-    print("\nfilho")
-    print(OBJ.question("filho"))
-    print("\nmortal")
-    print(OBJ.question("mortal"))
-    print("\navoh")
-    print(OBJ.question("avoh"))
-    print("\nbisavo")
-    print(OBJ.question("bisavo"))
-    print("\nbisavoh")
-    print(OBJ.question("bisavoh"))
-    print("\ntataravo")
-    print(OBJ.question("tataravo"))
-    print("\ntetraravoh")
-    print(OBJ.question("tataravoh"))
-    print("\ntetraravo")
-    print(OBJ.question("tetraravo"))
-    '''
-
-    print("\nfarol")
-    print(OBJ.question("farol"))
-    print("\nmudar_estado")
-    print(OBJ.question("mudar_estado"))
+    OBJ = InferenceMachine("./database/crossroad.json")
+    OBJ.set_dynamic_fact_interface("traffic_light", Connector())
+    print(OBJ.question("cross_road"))

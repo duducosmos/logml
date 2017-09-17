@@ -178,7 +178,7 @@ class Connector(object):
         for i in self.pred_args:
             tmp2 = []
             for _ in i:
-                tmp2.append(choice(["vermelho", "verde", "amarelo"]))
+                tmp2.append(choice(["red", "yellow", "green"]))
             tmp.append(tmp2)
 
         return array(tmp)

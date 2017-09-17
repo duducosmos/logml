@@ -105,9 +105,9 @@
                         {
                             "@class": "alerta",
                             "li": [
-                                "parar,vermelho",
-                                "atenção,amarelo",
-                                "seguir,verde"
+                                "parar,red",
+                                "atenção,yellow",
+                                "seguir,green"
                             ],
                             "meta": "* se #ALERTA# *"
                         }
