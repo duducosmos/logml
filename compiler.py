@@ -7,8 +7,9 @@ Version: 0.0.1
 Date: 22/08/2017
 """
 
-from parser import Parser
 from numpy import array
+
+from .parser import Parser
 
 
 class Compiler:
@@ -22,7 +23,6 @@ class Compiler:
         self._parser = Parser(self._logml_file)
         self.facts = {}
         self.facts_matrix()
-
 
     def _generate_rules(self, rule):
         #args = self._parser.conditionals[rule][0]["1"]

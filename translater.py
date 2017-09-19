@@ -8,7 +8,7 @@ Date: 22/08/2017
 """
 
 
-from parser import Parser
+from .parser import Parser
 
 
 class OnlyOneClausure(Exception):

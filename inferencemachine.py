@@ -10,15 +10,16 @@ Date: 08/09/2017
 from gettext import gettext as _
 from copy import copy
 import sys
-
-from parser import Parser
-from exceptions import InputArgsSizeError, NoDefinedDynamicClass
-from connector import Connector
-
 from numpy import where, array, array_equal
 
-from treedata import Node
-from commonsearch import in_common, concatenate_result
+
+from .parser import Parser
+from .exceptions import InputArgsSizeError, NoDefinedDynamicClass
+from .connector import Connector
+
+
+from .treedata import Node
+from .commonsearch import in_common, concatenate_result
 
 IS_PYTHON3 = sys.version_info.major == 3
 if IS_PYTHON3:
@@ -177,7 +178,6 @@ class InferenceMachine(object):
         """
         for key in node.data:
             if key in self.facts:
-
                 result = self._get_facts(key, node.data[key])
                 node.parente.children_result += [result]
                 node.parente.children_args += [node.data[key]]
@@ -193,7 +193,8 @@ class InferenceMachine(object):
                     node.result = result[0]
                     return
 
-                common, uniao = in_common(result, node.children_args, node.data[key])
+                common, uniao = in_common(
+                    result, node.children_args, node.data[key])
                 if len(node.data[key]) == 1:
                     node.result = common
                 else:
@@ -206,6 +207,18 @@ class InferenceMachine(object):
                     if node.result.tolist():
                         node.parente.children_result += [(True, node.result)]
 
+    def __compare_to_replace(self, args, genargs, bdi):
+        for kbdi, arg in bdi.items():
+            if any(k in genargs for k in arg):
+                for argi in args:
+                    if argi in self._parser.constants:
+
+                        arg_index = args.index(argi)
+                        change = genargs[arg_index]
+                        if change in bdi[kbdi]:
+                            gen_index = bdi[kbdi].index(change)
+                            bdi[kbdi][arg_index] = args[gen_index]
+
     def __replace_const(self, node, pred):
         head, body = self._parser.expanding_rule(pred)
 
@@ -214,12 +227,7 @@ class InferenceMachine(object):
             genargs = head[key]
 
             for bdi in body:
-                for kbdi, arg in bdi.items():
-                    if arg in genargs:
-                        if arg in self._parser.constants:
-                            arg_index = bdi[kbdi].index(arg)
-                            gen_index = genargs.index(arg)
-                            bdi[kbdi][arg_index] = args[gen_index]
+                self.__compare_to_replace(args, genargs, bdi)
 
         return body
 
@@ -238,6 +246,7 @@ class InferenceMachine(object):
                             self.__add_child(node)
 
                         if key_j in self.facts:
+
                             tmp = Node(bdi)
                             tmp.level = node.level + 1
                             tmp.add_parent(node)
@@ -248,7 +257,7 @@ class InferenceMachine(object):
             for subnode in node.children:
                 self._add_child(subnode)
 
-    @memoize(maxsize=32)
+    #@memoize(maxsize=32)
     def tree_rule(self, predicate):
         """
         Generate three of rule

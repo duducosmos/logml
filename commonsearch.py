@@ -67,6 +67,7 @@ def in_common(result, args, hargs):
     Given a list o result and a list of args, return the common elements
     where the relation is mapping by args.
     """
+
     uniao = None
     if len(args) == 1:
         return result[0]
@@ -83,6 +84,7 @@ def in_common(result, args, hargs):
         common = array(reduce(intersect1d, tmp))
 
         return common, uniao
+
 
     return _in_common(result, args, hargs)
 

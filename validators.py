@@ -8,9 +8,9 @@ Version: 0.0.1
 Date: 31/08/2017
 """
 
-from exceptions import NoKeyExpressionFounded, InvalidKeyExpressionFounded
-from exceptions import InconsistenNumberOfArgsIFacts, EmptyFact
-from exceptions import NoClosedKeyExpression
+from .exceptions import NoKeyExpressionFounded, InvalidKeyExpressionFounded
+from .exceptions import InconsistenNumberOfArgsIFacts, EmptyFact
+from .exceptions import NoClosedKeyExpression
 
 
 def validate_meta(frase, predicate):

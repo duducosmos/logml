@@ -15,11 +15,12 @@ from collections import OrderedDict
 import warnings
 from unicodedata import normalize
 from gettext import gettext as _
-
-from exceptions import OnlyOneClausure, OnVarNeed, NoVarConstFound, NoRecursionPermited
-from exceptions import OnlyOneArgInDynamicClass
-from validators import validate_meta, validate_meta_star
 from numpy import array
+
+
+from .exceptions import OnlyOneClausure, OnVarNeed, NoVarConstFound, NoRecursionPermited
+from .exceptions import OnlyOneArgInDynamicClass, NotValidTag
+from .validators import validate_meta, validate_meta_star
 
 import xmltodict
 
@@ -40,6 +41,8 @@ else:
         """
         return normalize('NFKD', txt.decode(codif)).encode('ASCII', 'ignore')
 
+TAGS = ["logml", "axiom", "head", "pred", "li",
+        "body", "@class", "@type", "#text", "meta"]
 
 def _parse_li(arg):
     """
@@ -94,6 +97,60 @@ def get_axioms(logml_file):
         axioms = result["logml"]["axiom"]
 
     return axioms
+
+
+def __validate_tags1(data, headbody, pred):
+    for insidehb in data[headbody][pred]:
+        if isinstance(insidehb, dict):
+            for sub in insidehb:
+                if sub not in TAGS:
+                    raise NotValidTag(_("Wrong TAG: ") + sub)
+        else:
+            if insidehb not in TAGS:
+                raise NotValidTag(_("Wrong TAG: ") + insidehb)
+
+def __validate_tags(data):
+    for headbody in data:
+        if headbody not in TAGS:
+            raise NotValidTag(_("Wrong TAG: ") + headbody)
+        for pred in data[headbody]:
+            if pred not in TAGS:
+                raise NotValidTag(_("Wrong TAG: ") + pred)
+            __validate_tags1(data, headbody, pred)
+
+
+
+def validate_tags(logml_file):
+    """
+    Verify if tag is correctly defined
+    """
+    end_file = logml_file.split(".")[-1]
+    result = None
+
+    if end_file == "logml":
+        with open(logml_file, 'r') as logml:
+            text = logml.read()
+
+            result = xmltodict.parse(text)
+
+
+    if end_file == "json":
+        with open(logml_file, 'r') as logml:
+            text = logml.read()
+            result = json.loads(text, object_pairs_hook=OrderedDict)
+
+
+    for logml in result:
+        if logml not in TAGS:
+            raise NotValidTag(_("Wrong TAG: ") + logml)
+        for axiom in result[logml]:
+
+            if axiom not in TAGS:
+                raise NotValidTag(_("Wrong TAG: ") + axiom)
+            for data in result[logml][axiom]:
+                __validate_tags(data)
+
+
 
 
 def logm_to_json(logml_file, savefile=None):
@@ -444,5 +501,6 @@ if __name__ == "__main__":
     #print("Dynamic facts {}".format(OBJ.get_predicates()))
     #logm_to_json("./database/crossroad.logml",
     #             savefile="./database/crossroad.json")
-    OBJ = Parser("./database/crossroad.logml")
-    print("Dynamic facts {}".format(OBJ.get_dynamic_facts()))
+    validate_tags("./database/crossroad.logml")
+    #OBJ = Parser("./database/crossroad.logml")
+    #print("Dynamic facts {}".format(OBJ.get_dynamic_facts()))

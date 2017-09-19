@@ -14,6 +14,12 @@ class InputArgsSizeError(Exception):
     """
     pass
 
+class NotValidTag(Exception):
+    """
+    Return Error when try to search facts or rules using no correspondet number of args.
+    """
+    pass
+
 
 class NoRecursionPermited(Exception):
     """
