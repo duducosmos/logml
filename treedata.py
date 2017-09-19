@@ -7,9 +7,12 @@ Version: 0.0.1
 Date: 12/09/2017
 """
 
+
+from collections import OrderedDict
+
 from functools import reduce
 from itertools import product
-from numpy import where, array, intersect1d, concatenate
+from numpy import where, array, intersect1d, in1d, concatenate
 
 
 class Node(object):
@@ -48,7 +51,51 @@ class Node(object):
         self.parente = obj
 
 
-def in_common(result, args):
+def _in_common(result, args, hargs):
+    common = []
+    match = OrderedDict()
+
+    for i, vali in enumerate(args):
+        tmp = []
+        for j, valj in enumerate(args[i+1:], start=i + 1):
+            if any(k in valj for k in vali):
+                uniao = list(set(valj) & set(vali))
+                match[i] = [j, uniao]
+                to_search = [where(array(l) == uniao)[0] for l in [vali, valj]]
+                tmp.append(result[i][:, to_search[0]])
+                tmp.append(result[j][:, to_search[1]])
+        if tmp:
+
+            in_array = array(reduce(intersect1d, tmp))
+            common.append(in_array)
+
+    # if we have 4 inputs, and, we are compare each by each, the max size of the
+    # Common list will be input size less one
+    # If the size of common is lower than the size of args less one, for
+    # some predicate, no value was found, and the rule is not true for all body component.
+
+    if  len(common) < len(args) - 1:
+        return [], []
+
+    if len(hargs) == 1:
+        for i in match:
+            if match[i][1] == hargs:
+                return common[i], []
+
+    for j, argi in enumerate(args):
+        if all(k in argi for k in hargs):
+            for i in match:
+                if match[i][0] == j:
+                    to_get = [argi.index(hi) for hi in hargs]
+                    to_search = argi.index(match[i][1][0])
+                    lines = in1d(result[j][:, to_search], common[i]).nonzero()
+                    finalr = concatenate([result[j][lines, tgi] for tgi in to_get]).T
+                    break
+    #print(finalr)
+    return finalr, []
+
+
+def in_common(result, args, hargs):
     """
     Given a list o result and a list of args, return the common elements
     where the relation is mapping by args.
@@ -63,12 +110,16 @@ def in_common(result, args):
         else:
             uniao = uniao & set(i)
     uniao = list(uniao)
-    to_search = [where(array(i) == uniao)[0] for i in args]
-    tmp = [result[j][:, to_search[j]] for j in range(len(result))]
-    common = array(reduce(intersect1d, tmp))
-    print(common)
+    if uniao:
+        to_search = [where(array(i) == uniao)[0] for i in args]
+        tmp = [result[j][:, to_search[j]] for j in range(len(result))]
+        common = array(reduce(intersect1d, tmp))
 
-    return common, uniao
+        return common, uniao
+
+
+
+    return _in_common(result, args, hargs)
 
 
 def concatenate_result(node, result, uniao, common, predicate):

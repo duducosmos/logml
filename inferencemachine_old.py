@@ -44,7 +44,6 @@ else:
             return rvi
         return wrapper
 
-
 def _search_facts(fact, predicate, args, argi):
     subset = []
     for j in args:
@@ -112,12 +111,15 @@ class InferenceMachine(object):
 
         return _search_facts(self.facts, predicate, args, argi)
 
+
     def _get_facts(self, predicate, *args, **kwargs):
+
 
         if "precise" in kwargs:
             precise = kwargs["precise"]
         else:
             precise = False
+
 
         if predicate in self.dynamic_facts:
             self.set_dynamic_fact(predicate)
@@ -192,14 +194,11 @@ class InferenceMachine(object):
                     node.result = result[0]
                     return
 
-                common, uniao = in_common(result, node.children_args, node.data[key])
+                common, uniao = in_common(result, node.children_args)
                 if len(node.data[key]) == 1:
                     node.result = common
                 else:
-                    if not uniao:
-                        node.result = common
-                    else:
-                        concatenate_result(node, result, uniao, common, key)
+                    concatenate_result(node, result, uniao, common, key)
 
                 if node.level > 0:
                     if node.result.tolist():
@@ -213,34 +212,47 @@ class InferenceMachine(object):
             genargs = head[key]
 
             for bdi in body:
-                for kbdi, arg in bdi.items():
-                    if arg in genargs:
-                        if arg in self._parser.constants:
+                for kbdi in bdi:
+                    for arg in bdi[kbdi]:
+                        if arg in genargs:
                             arg_index = bdi[kbdi].index(arg)
                             gen_index = genargs.index(arg)
                             bdi[kbdi][arg_index] = args[gen_index]
-
         return body
+
+
+    def __add_without_const(self, node, key):
+        if key not in self.facts:
+            body = self.__replace_const(node, key)
+            for bdi in body:
+                for key_j in bdi:
+                    if key_j not in self.facts:
+                        tmp = Node(bdi)
+                        tmp.level = node.level + 1
+                        tmp.add_parent(node)
+                        node.add_child(tmp)
+                        self.__add_child(node)
+
+                    if key_j in self.facts:
+                        tmp = Node(bdi)
+                        tmp.level = node.level + 1
+                        tmp.add_parent(node)
+                        node.add_child(tmp)
+
+    def __add_with_const(self, node):
+        for key in node.data:
+            if key != "const":
+                self.__add_without_const(node, key)
+
 
     def _add_child(self, node):
 
-        for key in node.data:
-            if key not in self.facts:
-                body = self.__replace_const(node, key)
-                for bdi in body:
-                    for key_j in bdi:
-                        if key_j not in self.facts:
-                            tmp = Node(bdi)
-                            tmp.level = node.level + 1
-                            tmp.add_parent(node)
-                            node.add_child(tmp)
-                            self.__add_child(node)
+        if "const" in node.data:
+            self.__add_with_const(node)
+        else:
+            for key in node.data:
+                self.__add_without_const(node, key)
 
-                        if key_j in self.facts:
-                            tmp = Node(bdi)
-                            tmp.level = node.level + 1
-                            tmp.add_parent(node)
-                            node.add_child(tmp)
 
     def __add_child(self, node):
         if node.children:
@@ -281,6 +293,7 @@ class InferenceMachine(object):
         self.dynamic_facts_func[predicate] = connector
         self.dynamic_facts_func[predicate].set_args(args=predargs)
 
+
     def set_dynamic_fact(self, predicate):
         """
         Define dynamicaly the current values of fact
@@ -289,8 +302,8 @@ class InferenceMachine(object):
         if predicate in self.dynamic_facts_func:
             self.facts[predicate] = self.dynamic_facts_func[predicate].gets_args()
         else:
-            raise NoDefinedDynamicClass(
-                _("No defined class for dynamic fact: ") + predicate)
+            raise NoDefinedDynamicClass(_("No defined class for dynamic fact: ") + predicate)
+
 
     def question(self, predicate, *args, **kwargs):
         """
@@ -309,7 +322,7 @@ class InferenceMachine(object):
                 self.set_dynamic_fact(predicate)
 
             if args:
-                facts = self._get_facts(predicate, args, precise=precise)[1]
+                facts = self._get_facts(predicate, args, precise=precise)
             else:
                 facts = self.facts[predicate]
 

@@ -17,10 +17,14 @@ OBJ.set_dynamic_fact_interface("traffic_light", Connector())
 print(OBJ.question("cross_road"))
 
 
-OBJ = InferenceMachine("./database/teste_extended.json")
+
+OBJ = InferenceMachine("./database/teste_extended.logml")
+print(OBJ.question("bisavo"))
+print(OBJ.question("parente", "tony", "x"))
+
 print(OBJ.question("mulher", "marta"))
 print(OBJ.question("mulher", "mariano"))
-print(OBJ.question("parente", "tony", "x"))
+
 print(OBJ.question("parente", "tony", "sara"))
 print(OBJ.question("parente", "tony", "dino"))
 print(OBJ.question("quadrado"))
@@ -45,19 +49,9 @@ print(OBJ.question("mortal"))
 print("\navoh")
 print(OBJ.question("avoh"))
 print("\nbisavo")
-print(OBJ.question("bisavo"))
-print("\nbisavoh")
-print(OBJ.question("bisavoh"))
 print("\ntataravo")
 print(OBJ.question("tataravo"))
 print("\ntataravoh")
 print(OBJ.question("tataravoh"))
 print("\ntetraravo")
 print(OBJ.question("tetraravo"))
-
-
-print("\nfarol")
-#OBJ.set_dynamic_fact_interface("farol", Connector())
-#print(OBJ.question("farol"))
-#print("\nmudar_estado")
-#print(OBJ.question("mudar_estado"))

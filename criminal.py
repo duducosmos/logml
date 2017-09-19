@@ -12,5 +12,6 @@ from inferencemachine import InferenceMachine
 
 OBJ = InferenceMachine("./database/criminal.logml")
 #print(OBJ.rules)
-#print(OBJ.question("produce"))
+print(OBJ.question("produce"))
+print(OBJ.question("sells"))
 print(OBJ.question("criminal"))

@@ -4,21 +4,27 @@
         <head>
             <pred class="american">
                 <li>west</li>
+                <li>jon</li>
             </pred>
             <pred class="nation">
                 <li>nono</li>
+                <li>xoxo</li>
             </pred>
             <pred class="enemy">
                 <li>nono,america</li>
+                <li>xoxo,america</li>
             </pred>
             <pred class="missile">
                 <li>m1</li>
+                <li>m2</li>
             </pred>
             <pred class="owns">
                 <li>nono,m1</li>
+                <li>xoxo,m2</li>
             </pred>
             <pred class="produce">
                 <li>west,m1</li>
+                <li>jon,m2</li>
             </pred>
         </head>
     </axiom>
