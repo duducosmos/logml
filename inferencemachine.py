@@ -17,7 +17,8 @@ from connector import Connector
 
 from numpy import where, array, array_equal
 
-from treedata import Node, in_common, concatenate_result
+from treedata import Node
+from commonsearch import in_common, concatenate_result
 
 IS_PYTHON3 = sys.version_info.major == 3
 if IS_PYTHON3:
