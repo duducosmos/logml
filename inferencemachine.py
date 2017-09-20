@@ -272,7 +272,7 @@ class InferenceMachine(object):
         """
         Generate three of rule
         """
-        self.graph = {"E": [], "V":[]}
+        self.graph = []
 
         if predicate in self.facts:
             return self._get_facts(predicate)

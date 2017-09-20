@@ -335,7 +335,7 @@ from logml.inferencemachine import InferenceMachine, plotTree
 
 OBJ = InferenceMachine("./database/criminal.logml")
 print(OBJ.question("criminal"))
-plotTree(OBJ.graph["E"])
+plotTree(OBJ.graph)
 ```
 
 The ```plotTree``` function generates a knowledge graph, representing the proof process:
