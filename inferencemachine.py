@@ -11,6 +11,7 @@ from gettext import gettext as _
 from copy import copy
 import sys
 from numpy import where, array, array_equal
+import pydot
 
 
 from .parser import Parser
@@ -82,6 +83,12 @@ def _search_facts(fact, predicate, args, argi):
 
     return True, fact[predicate][list(subset)]
 
+def plotTree(all_edge, img="test.png"):
+    graph = pydot.Dot(graph_type='graph')
+    for edi in all_edge:
+        edge = pydot.Edge(edi[0], edi[1])
+        graph.add_edge(edge)
+    graph.write_png(img)
 
 class InferenceMachine(object):
     """
@@ -95,6 +102,7 @@ class InferenceMachine(object):
         self.rules = self._parser.conditionals
         self.dynamic_facts = self._parser.get_dynamic_facts()
         self.dynamic_facts_func = {}
+        self.graph = {"E": []}
 
     def know_about(self):
         """
@@ -177,6 +185,8 @@ class InferenceMachine(object):
         Set result in node
         """
         for key in node.data:
+            if node.parente:
+                self.graph["E"].append((list(node.parente.data.keys())[0], key))
             if key in self.facts:
                 result = self._get_facts(key, node.data[key])
                 node.parente.children_result += [result]
@@ -262,6 +272,7 @@ class InferenceMachine(object):
         """
         Generate three of rule
         """
+        self.graph = {"E": [], "V":[]}
 
         if predicate in self.facts:
             return self._get_facts(predicate)
@@ -327,6 +338,8 @@ class InferenceMachine(object):
 
         if predicate in self.rules:
             return self.tree_rule(predicate)
+
+
 
 
 if __name__ == "__main__":

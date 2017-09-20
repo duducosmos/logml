@@ -241,3 +241,107 @@ It is possible to write the knowledge in the json format. Below it is a example 
     }
 }
 ```
+
+## Knowledge Graph
+
+Supose that we want to prove that some one is a criminal. In our sample, we assume that a person produce a weapon, and, if this person is american and a enemy nation has this weapon, the person committed a crime.
+
+The logml representing fatcs and rules of the crime is:
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<logml>
+    <axiom>
+        <head>
+            <pred class="american">
+                <li>west</li>
+                <li>jon</li>
+            </pred>
+            <pred class="nation">
+                <li>nono</li>
+                <li>xoxo</li>
+            </pred>
+            <pred class="enemy">
+                <li>nono,america</li>
+                <li>xoxo,america</li>
+            </pred>
+            <pred class="missile">
+                <li>m1</li>
+                <li>m2</li>
+            </pred>
+            <pred class="weapon">
+                <li>m1</li>
+                <li>m2</li>
+                <li>hk</li>
+            </pred>
+            <pred class="owns">
+                <li>nono,m1</li>
+                <li>xoxo,m2</li>
+            </pred>
+            <pred class="produce">
+                <li>west,m1</li>
+                <li>jon,hk</li>
+            </pred>
+        </head>
+    </axiom>
+    <axiom>
+        <head>
+            <pred class="sells">
+                <li>x,y,z</li>
+            </pred>
+        </head>
+        <body>
+            <pred class="produce">
+                <li>x,y</li>
+            </pred>
+            <pred class="weapon">
+                <li>y</li>
+            </pred>
+            <pred class="owns">
+                <li>z,y</li>
+            </pred>
+        </body>
+    </axiom>
+    <axiom>
+        <head>
+            <pred class="criminal">
+                <li>x</li>
+            </pred>
+        </head>
+        <body>
+            <pred class="american">
+                <li>x</li>
+            </pred>
+            <pred class="missile">
+                <li>y</li>
+            </pred>
+            <pred class="enemy">
+                <li>z,america</li>
+            </pred>
+            <pred class="sells">
+                <li>x,y,z</li>
+            </pred>
+        </body>
+    </axiom>
+</logml>
+```
+
+
+The following python programming query our database to prove who committed a crime:
+
+```python
+
+from logml.inferencemachine import InferenceMachine, plotTree
+
+OBJ = InferenceMachine("./database/criminal.logml")
+print(OBJ.question("criminal"))
+plotTree(OBJ.graph["E"])
+```
+
+The ```plotTree``` function generates a knowledge graph, representing the proof process:
+
+![alt text](imgs/criminal.jpg?raw=true "Title")
+
+Note that, to be criminal a person must be american, the nation must be enemy. Also, the person must have sold a missile to enemy.
+
+For this rules and facts, the answer is ```[west]```
