@@ -102,7 +102,7 @@ class InferenceMachine(object):
         self.rules = self._parser.conditionals
         self.dynamic_facts = self._parser.get_dynamic_facts()
         self.dynamic_facts_func = {}
-        self.graph = {"E": []}
+        self.graph = []
 
     def know_about(self):
         """
@@ -186,7 +186,7 @@ class InferenceMachine(object):
         """
         for key in node.data:
             if node.parente:
-                self.graph["E"].append((list(node.parente.data.keys())[0], key))
+                self.graph.append((list(node.parente.data.keys())[0], key))
             if key in self.facts:
                 result = self._get_facts(key, node.data[key])
                 node.parente.children_result += [result]
