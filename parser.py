@@ -18,7 +18,8 @@ from gettext import gettext as _
 from numpy import array
 
 
-from .exceptions import OnlyOneClausure, OnVarNeed, NoVarConstFound, NoRecursionPermited
+from .exceptions import OnlyOneClausure, OnVarNeed, NoVarConstFound
+from .exceptions import NoRecursionPermited
 from .exceptions import OnlyOneArgInDynamicClass, NotValidTag
 from .validators import validate_meta, validate_meta_star
 
@@ -44,16 +45,17 @@ else:
 TAGS = ["logml", "axiom", "head", "pred", "li",
         "body", "@class", "@type", "#text", "meta"]
 
+
 def _parse_li(arg):
     """
     Parse li an its type
     """
     if isinstance(arg, unicode):
-        return {"1": arg.split(",")}
+        return {"1": arg.replace(" ", "").split(",")}
 
     elif isinstance(arg, dict):
 
-        return [{arg["@type"]: arg["#text"].split(",")}]
+        return [{arg["@type"]: arg["#text"].replace(" ", "").split(",")}]
 
     out = []
     dynamic = 0
@@ -62,10 +64,10 @@ def _parse_li(arg):
         if isinstance(i, dict):
             if i["@type"] == "dynamic":
                 dynamic += 1
-            tmp = {i["@type"]: i["#text"].split(",")}
+            tmp = {i["@type"]: i["#text"].replace(" ", "").split(",")}
 
         else:
-            tmp = {"1": i.split(",")}
+            tmp = {"1": i.replace(" ", "").split(",")}
         out.append(tmp)
 
     if dynamic > 1:
@@ -86,7 +88,6 @@ def get_axioms(logml_file):
             text = logml.read()
 
             result = xmltodict.parse(text)
-
 
     if end_file == "json":
         with open(logml_file, 'r') as logml:
@@ -109,6 +110,7 @@ def __validate_tags1(data, headbody, pred):
             if insidehb not in TAGS:
                 raise NotValidTag(_("Wrong TAG: ") + insidehb)
 
+
 def __validate_tags(data):
     for headbody in data:
         if headbody not in TAGS:
@@ -117,7 +119,6 @@ def __validate_tags(data):
             if pred not in TAGS:
                 raise NotValidTag(_("Wrong TAG: ") + pred)
             __validate_tags1(data, headbody, pred)
-
 
 
 def validate_tags(logml_file):
@@ -133,12 +134,10 @@ def validate_tags(logml_file):
 
             result = xmltodict.parse(text)
 
-
     if end_file == "json":
         with open(logml_file, 'r') as logml:
             text = logml.read()
             result = json.loads(text, object_pairs_hook=OrderedDict)
-
 
     for logml in result:
         if logml not in TAGS:
@@ -149,8 +148,6 @@ def validate_tags(logml_file):
                 raise NotValidTag(_("Wrong TAG: ") + axiom)
             for data in result[logml][axiom]:
                 __validate_tags(data)
-
-
 
 
 def logm_to_json(logml_file, savefile=None):
@@ -210,7 +207,6 @@ def _facts_array(constants):
 
 def _facts_array_dynamic(constants):
     tmp = []
-
 
     if isinstance(constants, dict):
         if "dynamic" in constants:
@@ -277,6 +273,7 @@ class Parser(object):
 
                 for arg in value:
                     all_vars += arg["1"]
+                    '''
                     const_in_body = [
                         i for i in arg["1"] if i in self.constants]
 
@@ -284,19 +281,23 @@ class Parser(object):
                         body.append(
                             {key: arg["1"], "const": const_in_body})
                     else:
-                        body.append({key: arg["1"]})
+                    '''
+
+                    body.append({key: arg["1"]})
 
             else:
+
+                all_vars += value["1"]
+                '''
                 const_in_body = [i for i in value["1"]
                                  if i in self.constants]
-                all_vars += value["1"]
 
                 if const_in_body:
                     body.append(
                         {key: value["1"]})
-                        #{key: value["1"], "const": const_in_body})
                 else:
-                    body.append({key: value["1"]})
+                '''
+                body.append({key: value["1"]})
 
         return body, all_vars
 
@@ -318,16 +319,17 @@ class Parser(object):
                 const_in_head = [i for i in in_head if i in self.constants]
                 if len(in_head) == len(const_in_head):
                     raise OnVarNeed(
-                        _("No vars found in the head of: {}".format(predicate)))
+                        _("No vars found in the head of: {}".format(predicate))
+                    )
                 if not in_head:
                     NoVarConstFound(
-                        _("No vars or constants found in {}".format(predicate)))
+                        _("No vars or constants found in {}".format(predicate))
+                    )
             else:
                 body = self._get_body(comp, predicate)
 
                 all_vars += body[1]
                 body = body[0]
-
 
         for i in list(set(all_vars)):
 
@@ -338,7 +340,6 @@ class Parser(object):
                             i, predicate)),
                         SyntaxWarning
                     )
-
 
         return head, body
 
@@ -416,7 +417,8 @@ class Parser(object):
                     frase = conditional["head"]["pred"]["meta"]
                     validate_meta(frase, conditional)
 
-                    predicates.append({remover_acentos(conditional["head"]["pred"]["@class"]):
+                    predicates.append({remover_acentos(
+                        conditional["head"]["pred"]["@class"]):
                                        frase})
                 else:
                     predicates.append({remover_acentos(
@@ -462,7 +464,8 @@ class Parser(object):
                         raise NameError(
                             "Conditional with two predicates in head")
 
-                conditionals[remover_acentos(conditional['head']["pred"]["@class"])] = [
+                conditionals[remover_acentos(
+                    conditional['head']["pred"]["@class"])] = [
                     head_li,
                     body
                 ]
@@ -486,21 +489,12 @@ class Parser(object):
                         unconditionals[remover_acentos(fts["@class"])] = fts_li
                 else:
 
-                    fts_li = _parse_li(fts["li"])
-                    unconditionals[remover_acentos(unconditional['head']["pred"]["@class"])] = \
-                        fts_li
+                    fts_li = _parse_li(facts["li"])
+                    unconditionals[remover_acentos(
+                        unconditional['head']["pred"]["@class"])] = fts_li
             return unconditionals
 
 
 if __name__ == "__main__":
-    #OBJ = Parser("./database/teste_extended.logml")
-    #print("Predicados : {}".format(OBJ.get_predicates()))
-    #print("Constants : {}".format(OBJ.constants))
-    #print("Rules : {}".format(OBJ.conditionals))
-    #print("Facts : {}".format(OBJ.facts))
-    #print("Dynamic facts {}".format(OBJ.get_predicates()))
-    #logm_to_json("./database/crossroad.logml",
-    #             savefile="./database/crossroad.json")
+
     validate_tags("./database/crossroad.logml")
-    #OBJ = Parser("./database/crossroad.logml")
-    #print("Dynamic facts {}".format(OBJ.get_dynamic_facts()))

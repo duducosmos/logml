@@ -9,7 +9,6 @@ Date: 08/09/2017
 
 from gettext import gettext as _
 from copy import copy
-import sys
 from numpy import where, array, array_equal
 import pydot
 
@@ -21,31 +20,6 @@ from .connector import Connector
 
 from .treedata import Node
 from .commonsearch import in_common, concatenate_result
-
-IS_PYTHON3 = sys.version_info.major == 3
-if IS_PYTHON3:
-    from functools import lru_cache as memoize
-else:
-    from functools import wraps
-
-    def memoize(function):
-        '''
-        Create a cache for function
-        '''
-        memo = {}
-
-        @wraps(function)
-        def wrapper(*args):
-            '''
-            Wrapper
-            '''
-            if args in memo:
-                return memo[args]
-
-            rvi = function(*args)
-            memo[args] = rvi
-            return rvi
-        return wrapper
 
 
 def _search_facts(fact, predicate, args, argi):
@@ -83,12 +57,14 @@ def _search_facts(fact, predicate, args, argi):
 
     return True, fact[predicate][list(subset)]
 
+
 def plotTree(all_edge, img="test.png"):
     graph = pydot.Dot(graph_type='graph')
     for edi in all_edge:
         edge = pydot.Edge(edi[0], edi[1])
         graph.add_edge(edge)
     graph.write_png(img)
+
 
 class InferenceMachine(object):
     """
@@ -105,9 +81,8 @@ class InferenceMachine(object):
         self.graph = []
 
     def know_about(self):
-        """
-        Return the list of predicates.
-        """
+        """Return the list of predicates."""
+
         know = [list(i.keys())[0] for i in self._parser.predicates]
         print(_("I know about: "))
 
@@ -174,7 +149,7 @@ class InferenceMachine(object):
 
     def walk_tree_df_postorder(self, node, visit):
         """
-        Depth-first post-order
+        Depth-first post-order.
         """
         for child in node.children:
             self.walk_tree_df_postorder(child, visit)
@@ -182,7 +157,7 @@ class InferenceMachine(object):
 
     def visit(self, node):
         """
-        Set result in node
+        Set result in node.
         """
         for key in node.data:
             if node.parente:
@@ -205,6 +180,10 @@ class InferenceMachine(object):
 
                 common, uniao = in_common(
                     result, node.children_args, node.data[key])
+
+                # Falta verificar as variáveis pedidas e qual deve ser o perfil
+                # De saída, dado o head.
+
                 if len(node.data[key]) == 1:
                     node.result = common
                 else:
@@ -245,6 +224,7 @@ class InferenceMachine(object):
 
         for key in node.data:
             if key not in self.facts:
+                print(key, node.data)
                 body = self.__replace_const(node, key)
                 for bdi in body:
                     for key_j in bdi:
@@ -267,7 +247,6 @@ class InferenceMachine(object):
             for subnode in node.children:
                 self._add_child(subnode)
 
-    #@memoize(maxsize=32)
     def tree_rule(self, predicate):
         """
         Generate three of rule
@@ -308,7 +287,8 @@ class InferenceMachine(object):
         """
 
         if predicate in self.dynamic_facts_func:
-            self.facts[predicate] = self.dynamic_facts_func[predicate].gets_args()
+            self.facts[predicate] = \
+                self.dynamic_facts_func[predicate].gets_args()
         else:
             raise NoDefinedDynamicClass(
                 _("No defined class for dynamic fact: ") + predicate)
@@ -338,8 +318,6 @@ class InferenceMachine(object):
 
         if predicate in self.rules:
             return self.tree_rule(predicate)
-
-
 
 
 if __name__ == "__main__":

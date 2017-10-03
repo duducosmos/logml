@@ -51,10 +51,11 @@ def _in_common(result, args, hargs):
             in_array = array(reduce(intersect1d, tmp))
             common.append(in_array)
 
-    # if we have 4 inputs, and, we are compare each by each, the max size of the
-    # Common list will be input size less one
+    # if we have 4 inputs, and, we are compare each by each,
+    # the max size of the Common list will be input size less one
     # If the size of common is lower than the size of args less one, for
-    # some predicate, no value was found, and the rule is not true for all body component.
+    # some predicate, no value was found, and the rule is not true for all body
+    # component.
 
     if len(common) < len(args) - 1:
         return [], []
@@ -85,7 +86,6 @@ def in_common(result, args, hargs):
 
         return common, uniao
 
-
     return _in_common(result, args, hargs)
 
 
@@ -109,7 +109,8 @@ def concatenate_result(node, result, uniao, common, predicate):
                     to_get = where(~(array(node.children_args[i]) == uni))[0]
                     to_search = where(array(node.children_args[i]) == uni)[0]
                     tmp2 += item[:,
-                                 to_get][where(item[:, to_search] == cmi)[0]].T.tolist()
+                                 to_get][where(item[:, to_search] == cmi)[0]
+                                         ].T.tolist()
 
             tmp.append(tmp2)
         else:
@@ -124,4 +125,5 @@ def concatenate_result(node, result, uniao, common, predicate):
         tmp2.append(
             array(list(product(*[tmp[j][i] for j in range(len(tmp))]))))
     if tmp2:
+        print(tmp2)
         node.result = concatenate(tmp2)
